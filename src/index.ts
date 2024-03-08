@@ -1,16 +1,17 @@
 import express, { Request, Response } from "express";
 import userRoutes from "./users/routes"
 import client from "./db";
+require('dotenv').config()
 
 const app = express();
 
 client.query(`
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    address VARCHAR(255),
-    pfp_url VARCHAR(255),
-    cover_picture_url VARCHAR(255),
+    name TEXT,
+    address TEXT,
+    pfp_url TEXT,
+    cover_picture_url TEXT,
     description TEXT
 )
 `, (err, res) => {
@@ -18,7 +19,7 @@ CREATE TABLE users (
 });
 
 client.query(`
-CREATE TABLE levels (
+CREATE TABLE IF NOT EXISTS levels (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     total INTEGER,
