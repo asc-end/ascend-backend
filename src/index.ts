@@ -1,14 +1,38 @@
-import express from "express";
-import { Client } from 'pg';
+import express, { Request, Response } from "express";
+import userRoutes from "./users/routes"
+import client from "./db";
 
 const app = express();
 
-const client = new Client({
-    connectionString: process.env.ENVIRONMNENT == "production" ? process.env.DATABASE_PRIVATE_URL : process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
+client.query(`
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    address VARCHAR(255),
+    pfp_url VARCHAR(255),
+    cover_picture_url VARCHAR(255),
+    description TEXT
+)
+`, (err, res) => {
+    if (err) throw err;
 });
+
+client.query(`
+CREATE TABLE levels (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    total INTEGER,
+    language INTEGER,
+    socials INTEGER,
+    meditation INTEGER,
+    code INTEGER,
+    sport INTEGER
+);
+`, (err, res) => {
+    if (err) throw err;
+});
+
+app.use('/users', userRoutes);
 
 // Start server
 const PORT = process.env.PORT || 3001;
