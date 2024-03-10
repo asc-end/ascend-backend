@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 
 const router = express.Router();
 
-router.get("/users", (req, res) => {
+router.get("/", (req, res) => {
     client.query(`SELECT * FROM users`, (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
@@ -30,7 +30,7 @@ router.get("/users", (req, res) => {
 //     }
 // })
 
-router.post('/users/new-user', async (req, res) => {
+router.post('/new-user', async (req, res) => {
     try {
         const { username, address, description } = req.body;
         console.log(username)

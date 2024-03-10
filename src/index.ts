@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS levels (
     if (err) throw err;
 });
 
-// app.use('/users', userRoutes);
+app.use('/users', userRoutes);
 
 app.get("/test", (req, res) => {
         res.status(200).json({ "message": "test" });
