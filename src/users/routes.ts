@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/users", (req, res) => {
     client.query(`SELECT * FROM users`, (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
@@ -15,22 +15,22 @@ router.get("/", (req, res) => {
 })
 
 
-router.post("/", (req, res) => {
-    try {
-        const { userId, description } = req.body;
+// router.post("/", (req, res) => {
+//     try {
+//         const { userId, description } = req.body;
 
-        // Update the user's description in the database
-        const query = 'UPDATE users SET description = $1 WHERE id = $2';
-        const result = client.query(query, [description, userId]);
+//         // Update the user's description in the database
+//         const query = 'UPDATE users SET description = $1 WHERE id = $2';
+//         const result = client.query(query, [description, userId]);
 
-        res.json({ message: 'User description updated successfully' });
-    } catch (err) {
-        console.error('Error updating user description:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-})
+//         res.json({ message: 'User description updated successfully' });
+//     } catch (err) {
+//         console.error('Error updating user description:', err);
+//         res.status(500).json({ error: 'Internal server error' });
+//     }
+// })
 
-router.post('/new-user', async (req, res) => {
+router.post('/users/new-user', async (req, res) => {
     try {
         const { username, address, description } = req.body;
         console.log(username)
