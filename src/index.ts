@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS levels (
     if (err) throw err;
 });
 
+app.use(express.json())
 app.use('/users', userRoutes);
 
 app.get("/test", (req, res) => {
