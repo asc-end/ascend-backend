@@ -33,35 +33,31 @@ router.post("/", (req, res) => {
 router.post('/new-user', async (req, res) => {
     try {
         const { username, address, description } = req.body;
+        console.log(username)
+        const query = 'INSERT INTO users (username, address, pfp_url, cover_picture_url, description) VALUES ($1, $2, $3, $4, $5) RETURNING id';
+        client.query(query, [username, address, "", "", description], (err, result) => {
+            if (err) {
+                console.error('Error inserting user:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
 
-        client.query(`
-        INSERT INTO users (name, address, pfp_url, cover_picture_url, description)
-        VALUES ('New User', 'Address', 'pfp_url', 'cover_picture_url', 'Description')
-        RETURNING id;
-    `, (err, res) => {
-            if (err) throw err;
-
-            const userId = res.rows[0].id;
+            const userId = result.rows[0].id;
 
             client.query(`
-            INSERT INTO levels (user_id, total, language, socials, meditation, code, sport)
-            VALUES ($1, 0, 0, 0, 0, 0, 0);
-        `, [userId], (err, res) => {
-                if (err) throw err;
+                INSERT INTO levels (user_id, total, language, socials, meditation, code, sport)
+                VALUES ($1, 0, 0, 0, 0, 0, 0);
+            `, [userId], (err, result) => {
+                if (err) {
+                    console.error('Error inserting levels:', err);
+                    res.status(500).json({ error: 'Internal server error' });
+                    return;
+                }
 
                 console.log('New user with levels created successfully');
-                client.end();
+                res.json({ message: 'New user with levels created successfully' });
             });
         });
-
-        // Insert the new user into the database
-        const query = 'INSERT INTO users (username, address, pfp_url, cover_picture_url, description) VALUES ($1, $2, $3, $4, $5) RETURNING id';
-        const result = await client.query(query, [username, address, "", "", description]);
-
-        // Extract the newly generated user ID from the query result
-        const userId = result.rows[0].id;
-
-        res.json({ message: 'User created successfully', userId });
     } catch (err) {
         console.error('Error creating user:', err);
         res.status(500).json({ error: 'Internal server error' });
