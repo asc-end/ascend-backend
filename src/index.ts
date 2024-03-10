@@ -5,6 +5,7 @@ const cors = require("cors");
 require('dotenv').config()
 
 const app = express();
+app.use(express.json())
 const allowedOrigins = ["http://localhost:3000", "http://localhost:19006", "https://u.expo.dev/ffc4f432-c8b6-4087-93b8-db25caadabaa", "*", "http://192.168.1.66.8081:19006", "https://exp+app://expo-development-client/?url=http%3A%2F%2F192.168.1.66%3A8081"];
 
 app.use(cors({
@@ -47,7 +48,6 @@ CREATE TABLE IF NOT EXISTS levels (
     if (err) throw err;
 });
 
-app.use(express.json())
 app.use('/users', userRoutes);
 
 app.get("/test", (req, res) => {
