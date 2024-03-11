@@ -17,14 +17,15 @@ router.get("/", (req, res) => {
 
 router.post("/set-user", (req, res) => {
     try {
-        const { address, name, description } = req.body;
+        const { userId, name, description } = req.body;
 
-        const query = '  UPDATE users SET  description = CASE WHEN $1 IS NOT NULL THEN $1 ELSE description END, name = CASE WHEN $2 IS NOT NULL THEN $2 ELSE name END WHERE address = $3';
-        const result = client.query(query, [description, name, address]);
+        // Update the user's description in the database
+        const query = 'UPDATE users SET description = $1, name = $2 WHERE id = $3';
+        const result = client.query(query, [description, name, userId]);
 
         res.json({ message: 'User description and name updated successfully' });
     } catch (err) {
-        console.error('Error updating user description:', err);
+        console.error('Error updating user description and name:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 })
