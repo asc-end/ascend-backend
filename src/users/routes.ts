@@ -21,9 +21,16 @@ router.post("/set-user", (req, res) => {
 
         // Update the user's description in the database
         const query = 'UPDATE users SET description = $1, name = $2 WHERE id = $3';
-        const result = client.query(query, [description, name, userId]);
+        const result = client.query(query, [description, name, userId], (err, result) => {
+            if (err) {
+                console.error('Error updating user description and name', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
 
-        res.json({ message: 'User description and name updated successfully' });
+            console.log('User description and name updated successfully');
+            res.json({ message: 'New user with levels created successfully' });
+        })
     } catch (err) {
         console.error('Error updating user description and name:', err);
         res.status(500).json({ error: 'Internal server error' });
