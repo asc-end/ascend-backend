@@ -4,7 +4,8 @@ import express, { Request, Response } from "express";
 const router = express.Router();
 
 router.get("/", (req, res) => {
-    client.query(`SELECT * FROM users`, (err, result) => {
+    console.log(req.query.address)
+    client.query(`SELECT * FROM users WHERE address = $1`, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ error: "Internal server error" });
@@ -13,7 +14,6 @@ router.get("/", (req, res) => {
         }
     });
 })
-
 
 // router.post("/", (req, res) => {
 //     try {
