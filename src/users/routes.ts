@@ -15,20 +15,19 @@ router.get("/", (req, res) => {
     });
 })
 
-// router.post("/", (req, res) => {
-//     try {
-//         const { userId, description } = req.body;
+router.post("/set-user", (req, res) => {
+    try {
+        const { address, name, description } = req.body;
 
-//         // Update the user's description in the database
-//         const query = 'UPDATE users SET description = $1 WHERE id = $2';
-//         const result = client.query(query, [description, userId]);
+        const query = '  UPDATE users SET  description = CASE WHEN $1 IS NOT NULL THEN $1 ELSE description END, name = CASE WHEN $2 IS NOT NULL THEN $2 ELSE name END WHERE address = $3';
+        const result = client.query(query, [description, name, address]);
 
-//         res.json({ message: 'User description updated successfully' });
-//     } catch (err) {
-//         console.error('Error updating user description:', err);
-//         res.status(500).json({ error: 'Internal server error' });
-//     }
-// })
+        res.json({ message: 'User description and name updated successfully' });
+    } catch (err) {
+        console.error('Error updating user description:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+})
 
 router.post('/new-user', async (req, res) => {
     try {
