@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import userRoutes from "./users/routes"
+import friendshipsRoutes from "./friendships/routes"
 import client from "./db";
 const cors = require("cors");
 require('dotenv').config()
@@ -60,10 +61,11 @@ CREATE TABLE IF NOT EXISTS friendships (
 });
 
 app.use('/users', userRoutes);
+app.use('/friendships', friendshipsRoutes);
 
 app.get("/test", (req, res) => {
-        res.status(200).json({ "message": "test" });
-    }
+    res.status(200).json({ "message": "test" });
+}
 )
 // Start server
 const PORT = process.env.PORT || 3002;
