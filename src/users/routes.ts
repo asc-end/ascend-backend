@@ -5,7 +5,11 @@ const router = express.Router();
 
 router.get("/", (req, res) => {
     console.log(req.query.address)
-    client.query(`SELECT * FROM users WHERE address = $1`, [req.query.address], (err, result) => {
+    let query = "SELECT * FROM users"
+    if (req.query.address)
+        query = `SELECT * FROM users WHERE address = $1`
+
+    client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ error: "Internal server error" });

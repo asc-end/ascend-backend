@@ -48,6 +48,17 @@ CREATE TABLE IF NOT EXISTS levels (
     if (err) throw err;
 });
 
+client.query(`
+CREATE TABLE IF NOT EXISTS friendships (
+    id SERIAL PRIMARY KEY,
+    user1 TEXT,
+    user2 TEXT,
+    status TEXT
+);
+`, (err, res) => {
+    if (err) throw err;
+});
+
 app.use('/users', userRoutes);
 
 app.get("/test", (req, res) => {
