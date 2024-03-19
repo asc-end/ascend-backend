@@ -45,6 +45,24 @@ router.get("/pending", (req, res) => {
     });
 })
 
+router.get("/friends", (req, res) => {
+    const query = `
+    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
+    END as status
+    FROM friendships f
+    JOIN users u ON u.address = f.user1 OR u.address = f.user2
+    WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'friends'
+`;
+    client.query(query, [req.query.address], (err, result) => {
+        if (err) {
+            console.error("Error fetching actual data:", err);
+            res.status(500).json({ error: "Internal server error" });
+        } else {
+            res.json(result.rows);
+        }
+    });
+})
+
 router.delete("/:id", (req, res) => {
     const { id } = req.params;
     const query = "DELETE FROM friendships WHERE id = $1 RETURNING *";
