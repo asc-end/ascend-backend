@@ -47,7 +47,8 @@ router.get("/pending", (req, res) => {
 
 router.get("/friends", (req, res) => {
     const query = `
-    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
+    SELECT u.*, f.id AS friendship_id, u.id AS user_id
+    FROM friendships f
     JOIN users u ON u.address = f.user1 OR u.address = f.user2
     WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'friends'
 `;
