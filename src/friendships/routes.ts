@@ -44,6 +44,23 @@ router.get("/pending", (req, res) => {
         }
     });
 })
+
+router.delete("/:id", (req, res) => {
+    const { id } = req.params;
+    const query = "DELETE FROM friendships WHERE id = $1 RETURNING *";
+    client.query(query, [id], (err, result) => {
+        if (err) {
+            console.error('Error deleting friendship:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else if (result.rows.length === 0) {
+            res.status(404).json({ error: 'Friendship not found' });
+        } else {
+            res.json({ message: 'Friendship deleted successfully', deletedFriendship: result.rows[0] });
+        }
+    });
+});
+
+
 router.post("/", (req, res) => {
     try {
         const { user1, user2 } = req.body;
