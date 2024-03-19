@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
 
 router.get("/pending", (req, res) => {
     if (req.query.user)
-        client.query(`SELECT * FROM friendships WHERE user1 = $1 OR user2 = $1 AND status = 'pending'`, [req.query.user], (err, result) => {
+        client.query(`SELECT * FROM friendships WHERE user1 = $1 OR user2 = $1 AND status = 'pending'`, [req.query.address], (err, result) => {
             if (err) {
                 console.error("Error fetching actual data:", err);
                 res.status(500).json({ error: "Internal server error" });
