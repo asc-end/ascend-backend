@@ -45,6 +45,27 @@ router.get("/pending", (req, res) => {
     });
 })
 
+router.get("/not-friends", (req, res) => {
+    const query = `
+    SELECT u.* 
+    FROM users u
+    WHERE u.address NOT IN (
+        SELECT f.user1 FROM friendships f WHERE f.user2 = $1 AND f.status = 'friends'
+        UNION
+        SELECT f.user2 FROM friendships f WHERE f.user1 = $1 AND f.status = 'friends'
+    )
+`;
+    client.query(query, [req.query.address], (err, result) => {
+        if (err) {
+            console.error("Error fetching actual data:", err);
+            res.status(500).json({ error: "Internal server error" });
+        } else {
+            res.json(result.rows);
+        }
+    });
+})
+
+
 router.get("/friends", (req, res) => {
     const query = `
     SELECT u.*, f.id AS friendship_id, u.id AS user_id
