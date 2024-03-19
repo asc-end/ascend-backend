@@ -26,7 +26,7 @@ router.get("/", (req, res) => {
 
 router.get("/pending", (req, res) => {
     const query = `
-    SELECT u.*, 
+    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
     CASE 
         WHEN u.address = f.user1 THEN 'request' 
         WHEN u.address = f.user2 THEN 'invite' 
