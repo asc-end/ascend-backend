@@ -24,6 +24,24 @@ router.get("/", (req, res) => {
         });
 })
 
+router.get("/pending", (req, res) => {
+    if (req.query.user) {
+        client.query(`
+            SELECT f.*, u.* 
+            FROM friendships f 
+            JOIN users u ON f.user1 = u.id OR f.user2 = u.id 
+            WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'pending'
+        `, [req.query.user], (err, result) => {
+            if (err) {
+                console.error("Error fetching actual data:", err);
+                res.status(500).json({ error: "Internal server error" });
+            } else {
+                res.json(result.rows);
+            }
+        });
+    }
+})
+
 router.post("/", (req, res) => {
     try {
         const { user1, user2 } = req.body;
