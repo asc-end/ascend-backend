@@ -60,6 +60,20 @@ router.delete("/:id", (req, res) => {
     });
 });
 
+router.post("/accept", (req, res) => {
+    const { id } = req.query;
+    const query = "UPDATE friendships SET status = 'friends' WHERE id = $1 RETURNING *";
+    client.query(query, [id], (err, result) => {
+        if (err) {
+            console.error('Error updating friendship status:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        } else if (result.rows.length === 0) {
+            res.status(404).json({ error: 'Friendship not found' });
+        } else {
+            res.json({ message: 'Friendship accepted successfully', updatedFriendship: result.rows[0] });
+        }
+    });
+})
 
 router.post("/", (req, res) => {
     try {
