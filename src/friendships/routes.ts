@@ -28,8 +28,8 @@ router.get("/pending", (req, res) => {
     const query = `
     SELECT u.*, f.id AS friendship_id, u.id AS user_id,
     CASE 
-        WHEN u.address = f.user1 THEN 'request' 
-        WHEN u.address = f.user2 THEN 'invite' 
+        WHEN u.address = f.user1 THEN 'invite' 
+        WHEN u.address = f.user2 THEN 'request' 
     END as status
     FROM friendships f
     JOIN users u ON u.address = f.user1 OR u.address = f.user2
