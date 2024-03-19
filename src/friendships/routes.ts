@@ -14,4 +14,22 @@ router.get("/", (req, res) => {
     });
 })
 
+router.post("/", (req, res) => {
+    try {
+        const { user1, user2 } = req.body;
+        const query = "INSERT INTO friendships (user1, user2, status) VALUES ($1, $2, 'pending')"
+        client.query(query, [user1, user2], (err, result) => {
+            if (err) {
+                console.error('Error inserting friendship:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+
+        });
+    } catch (err) {
+        console.error('Error creating user:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+})
+
 export default router 
