@@ -18,6 +18,8 @@ router.post("/new", (req, res) => {
     try {
 
         const { beginDate, type, status, author, solStaked, nbDone, length, players, challengeData } = req.query;
+
+        console.log(beginDate, type, status, author, solStaked, nbDone, length, players, challengeData)
         const query = "INSERT INTO challenges (beginDate, type, status, author, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
         client.query(query, [beginDate, type, status, author, solStaked, nbDone, length, players, challengeData], (err, result) => {
             if (err) {
