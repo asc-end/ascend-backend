@@ -20,8 +20,8 @@ router.post("/new", (req, res) => {
         const { beginDate, type, status, author, solStaked, nbDone, length, players, challengeData } = req.body;
 
         console.log(challengeData, players)
-        const jsondata = JSON.parse(challengeData)
-        const jsonplayers = JSON.parse(players)
+        const jsondata = JSON.stringify(challengeData)
+        const jsonplayers = JSON.stringify(players)
         console.log(beginDate, type, status, author, solStaked, nbDone, length, players, challengeData)
         const query = "INSERT INTO challenges (beginDate, type, status, author, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
         client.query(query, [beginDate, type, status, author, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
