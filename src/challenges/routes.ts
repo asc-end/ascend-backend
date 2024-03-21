@@ -19,6 +19,7 @@ router.post("/new", (req, res) => {
 
         const { beginDate, type, status, author, solStaked, nbDone, length, players, challengeData } = req.body;
 
+        console.log(challengeData, players)
         const jsondata = JSON.parse(challengeData)
         const jsonplayers = JSON.parse(players)
         console.log(beginDate, type, status, author, solStaked, nbDone, length, players, challengeData)
