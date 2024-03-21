@@ -68,7 +68,11 @@ router.get("/not-friends", (req, res) => {
 
 router.get("/friends", (req, res) => {
     const query = `
-    SELECT u.*, f.id AS friendship_id, u.id AS user_id
+    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
+    CASE 
+        WHEN u.address = f.user1 THEN f.user2
+        WHEN u.address = f.user2 THEN f.user1
+    END as friend_address
     FROM friendships f
     JOIN users u ON (u.address = f.user1 OR u.address = f.user2) AND f.status = 'friends'
     WHERE (f.user1 = $1 OR f.user2 = $1)
