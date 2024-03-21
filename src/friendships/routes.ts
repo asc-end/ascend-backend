@@ -32,7 +32,7 @@ router.get("/pending", (req, res) => {
         WHEN u.address = f.user2 THEN 'request' 
     END as status
     FROM friendships f
-    JOIN users u ON u.address = f.user1 OR u.address = f.user2
+    JOIN users u ON (u.address = f.user1 OR u.address = f.user2) AND u.address != $1
     WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'pending'
 `;
     client.query(query, [req.query.address], (err, result) => {
