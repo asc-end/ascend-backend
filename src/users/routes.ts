@@ -28,12 +28,46 @@ router.get("/", (req, res) => {
 
 router.post("/set-user", (req, res) => {
     try {
-        const { address, name, description } = req.body;
+        const { address, name, description, pfp_url, cover_picture_url } = req.body;
 
         console.log(address)
-        // Update the user's description in the database
-        const query = 'UPDATE users SET description = $1, name = $2 WHERE address = $3';
-        const result = client.query(query, [description, name, address], (err, result) => {
+        let query = 'UPDATE users SET';
+        const queryParams = [];
+        let isFirstParam = true;
+        if (description !== undefined) {
+            query += `${isFirstParam ? ' ' : ', '}description = $2`;
+            queryParams.push(description);
+            isFirstParam = false;
+        }
+        if (name !== undefined) {
+            query += `${isFirstParam ? ' ' : ', '}name = $2`;
+            queryParams.push(name);
+            isFirstParam = false;
+        }
+        if (pfp_url !== undefined) {
+            query += `${isFirstParam ? ' ' : ', '}pfp_url = $3`;
+            queryParams.push(pfp_url);
+            isFirstParam = false;
+        }
+        if (cover_picture_url !== undefined) {
+            query += `${isFirstParam ? ' ' : ', '}cover_picture_url = $4`;
+            queryParams.push(cover_picture_url);
+            isFirstParam = false;
+        }
+        // else {
+        //     query += ', pfp_url = pfp_url';
+        // }
+        // else {
+        //     query += ', cover_picture_url = cover_picture_url';
+        // }
+
+        if (!queryParams.length) {
+            res.status(400).json({ error: "Please enter at least one param" });
+            return;
+        }
+        query += ' WHERE address = $5';
+        queryParams.push(address);
+        const result = client.query(query, queryParams, (err, result) => {
             if (err) {
                 console.error('Error updating user description and name', err);
                 res.status(500).json({ error: 'Internal server error' });
