@@ -30,7 +30,7 @@ router.post("/new", (req, res) => {
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
                 return;
             }
-
+            res.status(200).json({ message: 'Challenge created successfully.' });
         })
     } catch (err) {
         console.error('Error creating user:', err);
