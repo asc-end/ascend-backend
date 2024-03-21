@@ -6,7 +6,7 @@ const router = express.Router();
 router.get("/", (req, res) => {
     const {address} = req.query
 
-    client.query(`SELECT * FROM challenges WHERE players::text LIKE '%' || $1 || '%'`, [address], (err, result) => {
+    client.query(`SELECT * FROM challenges WHERE players::text LIKE '%$1%'`, [address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ error: "Internal server error" });
