@@ -4,7 +4,9 @@ import express, { Request, Response } from "express";
 const router = express.Router();
 
 router.get("/", (req, res) => {
-    client.query(`SELECT * FROM challenges`, (err, result) => {
+    const {address} = req.query
+
+    client.query(`SELECT * FROM challenges WHERE players @> ARRAY[$1]`, [address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ error: "Internal server error" });
