@@ -35,22 +35,22 @@ router.post("/set-user", (req, res) => {
         const queryParams = [];
         let isFirstParam = true;
         if (description !== undefined) {
-            query += `${isFirstParam ? ' ' : ', '}description = $2`;
+            query += `${isFirstParam ? ' ' : ', '}description = $${queryParams.length + 1}`;
             queryParams.push(description);
             isFirstParam = false;
         }
         if (name !== undefined) {
-            query += `${isFirstParam ? ' ' : ', '}name = $2`;
+            query += `${isFirstParam ? ' ' : ', '}name = $${queryParams.length + 1}`;
             queryParams.push(name);
             isFirstParam = false;
         }
         if (pfp_url !== undefined) {
-            query += `${isFirstParam ? ' ' : ', '}pfp_url = $3`;
+            query += `${isFirstParam ? ' ' : ', '}pfp_url = $${queryParams.length + 1}`;
             queryParams.push(pfp_url);
             isFirstParam = false;
         }
         if (cover_picture_url !== undefined) {
-            query += `${isFirstParam ? ' ' : ', '}cover_picture_url = $4`;
+            query += `${isFirstParam ? ' ' : ', '}cover_picture_url = $${queryParams.length + 1}`;
             queryParams.push(cover_picture_url);
             isFirstParam = false;
         }
@@ -65,7 +65,8 @@ router.post("/set-user", (req, res) => {
             res.status(400).json({ error: "Please enter at least one param" });
             return;
         }
-        query += ' WHERE address = $5';
+        console.log(queryParams)
+        query += ` WHERE address = $${queryParams.length + 1}`;
         queryParams.push(address);
         const result = client.query(query, queryParams, (err, result) => {
             if (err) {
