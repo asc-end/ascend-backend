@@ -54,6 +54,7 @@ router.get("/not-friends", (req, res) => {
         UNION
         SELECT f.user2 FROM friendships f WHERE f.user1 = $1 AND f.status = 'friends'
     )
+    AND u.address != $1
 `;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
