@@ -84,8 +84,32 @@ app.use('/challenges', challengesRoutes);
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
+})
+
+
+
+function setLostChallengesAsFinished() {
+    console.log("Setting today's lost challenges as finished");
+    const query = `
+            UPDATE challenges 
+            SET status = 'finished' 
+            WHERE status = 'during' 
+            AND beginDate + (nbDone * INTERVAL '1 day') < current_date
+            `;
+    client.query(query, (err, result) => {
+        if (err)
+            console.error("Error updating lost challenges", err);
+        else if (result)
+            console.log("Lost challenges set as finished");
+    });
 }
-)
+
+const cron = require('node-cron');
+
+cron.schedule('0 0 * * *', () => {
+    setLostChallengesAsFinished()
+});
+
 // Start server
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
