@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import userRoutes from "./users/routes"
 import friendshipsRoutes from "./friendships/routes"
 import challengesRoutes from "./challenges/routes"
+import githubRoutes from "./github/routes"
 import client from "./db";
 const cors = require("cors");
 require('dotenv').config()
@@ -81,12 +82,11 @@ CREATE TABLE IF NOT EXISTS challenges (
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
+app.use('/github', githubRoutes);
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
 })
-
-
 
 function setLostChallengesAsFinished() {
     console.log("Setting today's lost challenges as finished");
