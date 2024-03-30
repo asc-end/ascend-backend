@@ -1,11 +1,12 @@
-import { Octokit } from "@octokit/core";
 import express, { Request, Response } from "express";
+import { Octokit } from "octokit";
 
 const router = express.Router();
 
 router.get("/repo", (req, res) => {
     const { token } = req.query
 
+    console.log("getting repo")
     const octokit = new Octokit({
         auth: token,
     });
