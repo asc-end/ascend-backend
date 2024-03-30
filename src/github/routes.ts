@@ -23,7 +23,7 @@ router.get("/repo", (req, res) => {
 })
 
 router.get("/revoke", (req, res) => {
-    const { token } = req.body
+    const { token } = req.query
     const octokit = new Octokit({
         authStrategy: createOAuthUserAuth,
         auth: {clientId: process.env.GH_CLIENT_ID, clientSecret: process.env.GH_CLIENT_SECRET}
