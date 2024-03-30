@@ -22,7 +22,7 @@ router.get("/repo", (req, res) => {
     }).catch(e => res.status(500).json({ error: e }))
 })
 
-router.post("/revoke", (req, res) => {
+router.get("/revoke", (req, res) => {
     const { token } = req.query
     const octokit = new Octokit({
         auth: token,
