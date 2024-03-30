@@ -29,6 +29,13 @@ router.get("/revoke", (req, res) => {
         auth: {clientId: process.env.GH_CLIENT_ID, clientSecret: process.env.GH_CLIENT_SECRET}
     });
 
+    octokit.rest.apps.checkToken({access_token: token as string, client_id: process.env.GH_CLIENT_ID as string})
+        .then(resp=> console.log(resp))
+        .catch(e => {
+            if(e.status == 404){
+                res.status(200).json("Token already not linked")
+            }
+        })
     octokit.request(`DELETE /applications/${process.env.GH_CLIENT_ID}/grant`, { access_token: token }).then((result) => {
         console.log(result)
         res.status(200).json("Authorization revoked properly")
