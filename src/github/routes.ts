@@ -42,4 +42,31 @@ router.get("/revoke", (req, res) => {
     }).catch((e) => res.status(500).json(`An error occured while revoking: ${e}`))
 })
 
+router.get('/commit', (req, res)=> {
+    const octokit = new Octokit()
+    const today = new Date().toISOString().slice(0, 10);
+
+
+    octokit.request('GET /repos/mgavillo/dslr/commits', {
+        owner: 'mgavillo',
+        repo: 'dslr',
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      }).catch(e=> {
+        res.status(500).json(`Failed : ${e}`)
+    }).then((r)=> {
+
+        let commitToday = false
+        //@ts-ignore
+        r.data?.forEach((commit:any) => {
+            const commitDate = commit.committer.date?.slice(0, 10);
+            if (commitDate === today) {
+                commitToday = true
+            }
+        });
+        res.status(200).json(commitToday)
+    })
+})
+
 export default router 
