@@ -114,7 +114,7 @@ async function testCommits() {
     yesterday.setDate(today.getDate() - 1);
     // Format yesterday's date in YYYY-MM-DD format
     const yesterdayFormatted = yesterday.toISOString().slice(0, 10);
-const todayFormatted = today.toISOString().slice(0, 10)
+    const todayFormatted = today.toISOString().slice(0, 10)
 
     let codeChallenges: any[] = []
 
@@ -128,8 +128,8 @@ const todayFormatted = today.toISOString().slice(0, 10)
         codeChallenges = res.rows
         codeChallenges?.forEach(async (challenge) => {
             console.log(challenge)
-            try{
-                if(!challenge.challengedata) return 
+            try {
+                if (!challenge.challengedata) return
                 await octokit.request(`GET /repos/${challenge.challengedata.user}/${challenge.challengedata.repo.name}/commits`, {
                     owner: challenge.challengedata.user,
                     repo: challenge.challengedata.repo.name,
@@ -141,33 +141,34 @@ const todayFormatted = today.toISOString().slice(0, 10)
                     throw (e)
                 }).then((r) => {
                     //@ts-ignore
-                    if(r.status !== 200) return
+                    if (r.status !== 200) return
                     let commitToday = false
                     //@ts-ignore
-
                     r.data?.forEach((commit: any) => {
-                        const commitDate = commit.committer.date?.slice(0, 10);
+                        const commitDate = commit.commit.committer.date?.slice(0, 10);
+                        console.log(commitDate, commit.commit)
                         if (commitDate === yesterdayFormatted) {
-                            client.query(`
-                                    UPDATE challenges 
-                                    SET nbdone = $1 
-                                    WHERE id = $2
-                                `, [challenge.nbdone + 1, challenge.id], (err, res) => {
-                                if (err) {
-                                    throw err;
-                                }
-                                console.log('Number done updated successfully!');
-                            });
                             commitToday = true
+
                         }
                     });
-                    if(!commitToday) 
+                    if (!commitToday)
                         console.log("no commit today for ", challenge.challengedata.repo.name)
-    
+                    if (commitToday)
+                        client.query(`
+                    UPDATE challenges 
+                    SET nbdone = $1 
+                    WHERE id = $2
+                `, [challenge.nbdone + 1, challenge.id], (err, res) => {
+                            if (err) {
+                                throw err;
+                            }
+                            console.log('Number done updated successfully!');
+                        });
                 })
 
-            } catch(e) {
-                console.log(e) 
+            } catch (e) {
+                console.log(e)
             }
         })
     });
