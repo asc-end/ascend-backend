@@ -4,6 +4,7 @@ import friendshipsRoutes from "./friendships/routes"
 import challengesRoutes from "./challenges/routes"
 import githubRoutes from "./github/routes"
 import client from "./db";
+import { Octokit } from "octokit";
 const cors = require("cors");
 require('dotenv').config()
 
@@ -88,8 +89,7 @@ app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
 })
 
-function setLostChallengesAsFinished() {
-    console.log("Setting today's lost challenges as finished");
+async function setLostChallengesAsFinished() {
     const query = `
             UPDATE challenges 
             SET status = 'finished' 
@@ -104,10 +104,83 @@ function setLostChallengesAsFinished() {
     });
 }
 
+async function testCommits() {
+    const octokit = new Octokit()
+    // Get today's date
+    const today = new Date();
+
+    // Subtract one day from today
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    // Format yesterday's date in YYYY-MM-DD format
+    const yesterdayFormatted = yesterday.toISOString().slice(0, 10);
+const todayFormatted = today.toISOString().slice(0, 10)
+
+    let codeChallenges: any[] = []
+
+    client.query(`
+    SELECT * FROM challenges 
+    WHERE type = 'Code' AND status = 'during'
+`, (err, res) => {
+        if (err) {
+            throw err;
+        }
+        codeChallenges = res.rows
+        codeChallenges?.forEach(async (challenge) => {
+            console.log(challenge)
+            try{
+                if(!challenge.challengedata) return 
+                await octokit.request(`GET /repos/${challenge.challengedata.user}/${challenge.challengedata.repo.name}/commits`, {
+                    owner: challenge.challengedata.user,
+                    repo: challenge.challengedata.repo.name,
+                    headers: {
+                        'X-GitHub-Api-Version': '2022-11-28'
+                    }
+                }).catch(e => {
+                    console.error(e)
+                    throw (e)
+                }).then((r) => {
+                    //@ts-ignore
+                    if(r.status !== 200) return
+                    let commitToday = false
+                    //@ts-ignore
+
+                    r.data?.forEach((commit: any) => {
+                        const commitDate = commit.committer.date?.slice(0, 10);
+                        if (commitDate === yesterdayFormatted) {
+                            client.query(`
+                                    UPDATE challenges 
+                                    SET nbdone = $1 
+                                    WHERE id = $2
+                                `, [challenge.nbdone + 1, challenge.id], (err, res) => {
+                                if (err) {
+                                    throw err;
+                                }
+                                console.log('Number done updated successfully!');
+                            });
+                            commitToday = true
+                        }
+                    });
+                    if(!commitToday) 
+                        console.log("no commit today for ", challenge.challengedata.repo.name)
+    
+                })
+
+            } catch(e) {
+                console.log(e) 
+            }
+        })
+    });
+
+
+}
+
+testCommits()
 const cron = require('node-cron');
 
-cron.schedule('0 0 * * *', () => {
-    setLostChallengesAsFinished()
+cron.schedule('0 1 * * *', async () => {
+    await testCommits()
+    await setLostChallengesAsFinished()
 });
 
 // Start server
