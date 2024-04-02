@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
 })
 
 router.get("/feed", (req, res) => {
-    client.query(`SELECT * FROM challenges WHERE status= 'during'`, (err, result) => {
+    client.query(`SELECT * FROM challenges WHERE status= 'during' ORDER BY begindate`, (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ error: "Internal server error" });
