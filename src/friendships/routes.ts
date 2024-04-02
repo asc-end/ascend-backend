@@ -69,7 +69,7 @@ router.get("/not-friends", (req, res) => {
         friendships f ON (u.address = f.user1 OR u.address = f.user2)
     WHERE 
         u.address != $1
-        AND (f.status != 'friends' OR f.status IS NUL);`
+        AND (f.status != 'friends' OR f.status IS NULL);`
             ;
         client.query(query, [req.query.address], (err, result) => {
             if (err) {
