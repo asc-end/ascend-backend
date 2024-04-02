@@ -39,7 +39,17 @@ router.get("/feed", async (req, res) => {
         const cursor = typeof cursorParam === 'string' ? parseInt(cursorParam) : 0; // Convert cursor to number, default to 0 if not provided or invalid
         const limit = 10; // Set a limit for the number of challenges per page
 
-        const challengesQuery = await client.query(`SELECT * FROM challenges ORDER BY beginDate OFFSET $1 LIMIT $2`, [cursor, limit]);
+        const userAddress = req.query.address;
+
+        // Query to select challenges of friends
+        const challengesQuery = await client.query(`
+            SELECT c.*
+            FROM challenges c
+            INNER JOIN friendships f ON (c.author = f.user1 OR c.author = f.user2)
+            WHERE (f.user1 = $1 OR f.user2 = $1)
+            AND f.status = 'friends'
+            ORDER BY c.beginDate DESC OFFSET $2 LIMIT $3
+        `, [userAddress, cursor, limit]);
         const challenges = challengesQuery.rows;
 
         const usersPromises = challenges.map(async (challenge) => {
