@@ -79,12 +79,20 @@ router.post("/set-user", (req, res) => {
 
 router.post('/new-user', async (req, res) => {
     try {
-        const { address  } = req.body;
+        const { address } = req.body;
+
         const query = "INSERT INTO users (address) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM users WHERE address = $1) RETURNING id"
-        client.query(query, [address,], (err, result) => {
+        client.query(query, [address], (err, result) => {
             if (err) {
                 console.error('Error inserting user:', err);
                 res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+
+            if (result.rows.length === 0) {
+                // User already exists
+                console.log('User already exists');
+                res.status(400).json({ error: 'User already exists' });
                 return;
             }
 
