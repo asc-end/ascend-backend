@@ -47,14 +47,21 @@ router.get("/pending", (req, res) => {
 
 router.get("/not-friends", (req, res) => {
     const query = `
-    SELECT u.* 
-    FROM users u
-    WHERE u.address NOT IN (
-        SELECT f.user1 FROM friendships f WHERE f.user2 = $1 AND f.status = 'friends'
-        UNION
-        SELECT f.user2 FROM friendships f WHERE f.user1 = $1 AND f.status = 'friends'
-    )
+    SELECT 
+    u.*, 
+    CASE 
+        WHEN f.user1 = $1 THEN 'request'
+        WHEN f.user2 = $1 THEN 'invite'
+        ELSE NULL 
+    END AS status
+FROM 
+    users u
+LEFT JOIN 
+    friendships f ON (u.address = f.user1 OR u.address = f.user2)
+WHERE 
+    f.status IS NULL 
     AND u.address != $1
+
 `;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {

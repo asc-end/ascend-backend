@@ -41,6 +41,7 @@ router.get("/feed", async (req, res) => {
 
         const userAddress = req.query.address;
 
+        console.log(cursor, userAddress)
         // Query to select challenges of friends
         const challengesQuery = await client.query(`
             SELECT c.*
