@@ -50,19 +50,18 @@ router.get("/not-friends", (req, res) => {
     SELECT 
     u.*, 
     CASE 
-        WHEN f.user1 = $1 THEN 'request'
-        WHEN f.user2 = $1 THEN 'invite'
-        ELSE NULL 
+        WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
+        WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
+        WHEN f.status = 'friends' THEN 'friends'
     END AS status
 FROM 
     users u
 LEFT JOIN 
     friendships f ON (u.address = f.user1 OR u.address = f.user2)
 WHERE 
-    f.status IS NULL 
-    AND u.address != $1
-
-`;
+    u.address != $1
+    AND (f.status != 'friends' OR f.status IS NULL)`
+    ;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
