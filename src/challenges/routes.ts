@@ -20,7 +20,7 @@ router.get("/feed", async (req, res) => {
     try {
         const cursorParam = req.query.cursor; // Get cursor from query parameters
         const cursor = typeof cursorParam === 'string' ? parseInt(cursorParam) : 0; // Convert cursor to number, default to 0 if not provided or invalid
-        const limit = 10; // Set a limit for the number of challenges per page
+        const limit = 3; // Set a limit for the number of challenges per page
 
         const challengesQuery = await client.query(`SELECT * FROM challenges ORDER BY beginDate OFFSET $1 LIMIT $2`, [cursor, limit]);
         const challenges = challengesQuery.rows;
