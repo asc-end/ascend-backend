@@ -5,6 +5,7 @@ import challengesRoutes from "./challenges/routes"
 import githubRoutes from "./github/routes"
 import client from "./db";
 import { Octokit } from "octokit";
+import { importFromJson } from "./flashcards/routes";
 const cors = require("cors");
 require('dotenv').config()
 
@@ -80,6 +81,20 @@ CREATE TABLE IF NOT EXISTS challenges (
     if (err) throw err;
 });
 
+client.query(`
+CREATE TABLE IF NOT EXISTS languagecards (
+    id SERIAL PRIMARY KEY,
+    english TEXT,
+    french TEXT,
+    german TEXT,
+    italian TEXT,
+    portuguese TEXT,
+    spanish TEXT
+);
+`, (err, res) => {
+    if (err) throw err;
+});
+
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
@@ -141,6 +156,7 @@ async function testCommits() {
                     throw (e)
                 }).then((r) => {
                     //@ts-ignore
+
                     if (r.status !== 200) return
                     let commitToday = false
                     //@ts-ignore
@@ -154,17 +170,16 @@ async function testCommits() {
                     });
                     if (!commitToday)
                         console.log("no commit today for ", challenge.challengedata.repo.name)
-                    if (commitToday)
-                        client.query(`
-                    UPDATE challenges 
-                    SET nbdone = $1 
-                    WHERE id = $2
-                `, [challenge.nbdone + 1, challenge.id], (err, res) => {
+                    if (commitToday) {
+                        const query = "UPDATE challenges SET nbDone = nbDone + 1 WHERE id = $1 AND status = 'during'";
+                        client.query(query, [challenge.id], (err, res) => {
                             if (err) {
                                 throw err;
                             }
                             console.log('Number done updated successfully!');
                         });
+
+                    }
                 })
 
             } catch (e) {

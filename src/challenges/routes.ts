@@ -41,4 +41,25 @@ router.post("/new", (req, res) => {
 
 })
 
+router.post("/validate-day", (req, res) => {
+    try {
+
+        const { challengeId } = req.body;
+
+        const query = "UPDATE challenges SET nbDone = nbDone + 1 WHERE id = $1 AND status = 'during'";
+        client.query(query, [challengeId], (err, result) => {
+            if (err) {
+                console.error(err)
+                res.status(500).json({ error: `Internal server error : ${err.message}` });
+                return;
+            }
+            res.status(200).json({ message: 'Challenge incremented successfully.' });
+        })
+    } catch (err) {
+        console.error('Error incrementing challenge:', err);
+        res.status(500).json({ error: `Internal server error ${err}` });
+    }
+
+})
+
 export default router 
