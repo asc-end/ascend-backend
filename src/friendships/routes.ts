@@ -8,7 +8,7 @@ router.get("/", (req, res) => {
         client.query(`SELECT * FROM friendships user1 = $1 OR user2 =$1`, [req.query.user], (err, result) => {
             if (err) {
                 console.error("Error fetching actual data:", err);
-                res.status(500).json({ error: "Internal server error" });
+                res.status(500).json({ ok: false, error: "Internal server error" });
             } else {
                 res.json(result.rows);
             }
@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
         client.query(`SELECT * FROM friendships`, (err, result) => {
             if (err) {
                 console.error("Error fetching actual data:", err);
-                res.status(500).json({ error: "Internal server error" });
+                res.status(500).json({ ok: false, error: "Internal server error" });
             } else {
                 res.json(result.rows);
             }
@@ -25,27 +25,6 @@ router.get("/", (req, res) => {
 })
 
 router.get("/pending", (req, res) => {
-    const query = `
-    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
-    CASE 
-        WHEN u.address = f.user1 THEN 'invite' 
-        WHEN u.address = f.user2 THEN 'request' 
-    END as status
-    FROM friendships f
-    JOIN users u ON (u.address = f.user1 OR u.address = f.user2) AND u.address != $1
-    WHERE (f.user1 = $1 OR f.user2 = $1) AND f.status = 'pending'
-`;
-    client.query(query, [req.query.address], (err, result) => {
-        if (err) {
-            console.error("Error fetching actual data:", err);
-            res.status(500).json({ error: "Internal server error" });
-        } else {
-            res.json(result.rows);
-        }
-    });
-})
-
-router.get("/not-friends", (req, res) => {
     const query = `
     SELECT 
     u.*, 
@@ -61,34 +40,74 @@ LEFT JOIN
     friendships f ON (u.address = f.user1 OR u.address = f.user2)
 WHERE 
     u.address != $1
-    AND (f.status != 'friends' OR f.status IS NULL);`
-    ;
+    AND (f.status != 'friends' AND f.status IS NOT NULL);
+`;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
-            res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({ ok: false, error: "Internal server error" });
         } else {
             res.json(result.rows);
         }
     });
 })
 
+router.get("/not-friends", (req, res) => {
+    try {
+        const query = `
+        SELECT 
+        u.*, 
+        CASE 
+            WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
+            WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
+            WHEN f.status = 'friends' THEN 'friends'
+        END AS status,
+        f.id AS friendship_id
+    FROM 
+        users u
+    LEFT JOIN 
+        friendships f ON (u.address = f.user1 OR u.address = f.user2)
+    WHERE 
+        u.address != $1
+        AND (f.status != 'friends' OR f.status IS NUL);`
+            ;
+        client.query(query, [req.query.address], (err, result) => {
+            if (err) {
+                console.error("Error fetching actual data:", err);
+                res.status(500).json({ ok: false, error: "Internal server error" });
+            } else {
+                res.json(result.rows);
+            }
+        });
+
+    }
+    catch (e) {
+        res.status(500).json({ ok: false, erro: "Internal server error" })
+    }
+})
+
 
 router.get("/friends", (req, res) => {
     const query = `
-        SELECT u.*, f.id AS friendship_id,
-            CASE 
-                WHEN u.address = f.user1 THEN f.user2
-                WHEN u.address = f.user2 THEN f.user1
-            END as friend
-        FROM users u
-        JOIN friendships f ON (u.address = f.user1 OR u.address = f.user2)
-        WHERE f.status = 'friends' AND u.address != $1 AND (f.user1 = $1 OR f.user2 = $1)
-`;
+    SELECT 
+    u.*, 
+    CASE 
+        WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
+        WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
+        WHEN f.status = 'friends' THEN 'friends'
+    END AS status,
+    f.id AS friendship_id
+FROM 
+    users u
+LEFT JOIN 
+    friendships f ON (u.address = f.user1 OR u.address = f.user2)
+WHERE 
+    u.address != $1
+    AND f.status = 'friends';`;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
-            res.status(500).json({ error: "Internal server error" });
+            res.status(500).json({ ok: false, error: "Internal server error" });
         } else {
             res.json(result.rows);
         }
@@ -101,7 +120,7 @@ router.delete("/:id", (req, res) => {
     client.query(query, [id], (err, result) => {
         if (err) {
             console.error('Error deleting friendship:', err);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ ok: false, error: 'Internal server error' });
         } else if (result.rows.length === 0) {
             res.status(404).json({ error: 'Friendship not found' });
         } else {
@@ -116,7 +135,7 @@ router.post("/accept", (req, res) => {
     client.query(query, [id], (err, result) => {
         if (err) {
             console.error('Error updating friendship status:', err);
-            res.status(500).json({ error: 'Internal server error' });
+            res.status(500).json({ ok: false, error: 'Internal server error' });
         } else if (result.rows.length === 0) {
             res.status(404).json({ error: 'Friendship not found' });
         } else {
@@ -132,14 +151,14 @@ router.post("/", (req, res) => {
         client.query(query, [user1, user2], (err, result) => {
             if (err) {
                 console.error('Error inserting friendship:', err);
-                res.status(500).json({ error: 'Internal server error' });
+                res.status(500).json({ ok: false, error: 'Internal server error' });
                 return;
             }
 
         });
     } catch (err) {
         console.error('Error creating user:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ ok: false, error: 'Internal server error' });
     }
 })
 
