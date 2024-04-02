@@ -92,7 +92,7 @@ router.post('/new-user', async (req, res) => {
             if (result.rows.length === 0) {
                 // User already exists
                 console.log('User already exists');
-                res.status(400).json({ error: 'User already exists' });
+                res.status(200).json({ error: 'User already exists' });
                 return;
             }
 
