@@ -46,7 +46,7 @@ router.post("/validate-day", (req, res) => {
 
         const { challengeId } = req.body;
 
-        const query = "UPDATE challenges SET nbDone = nbDone + 1 WHERE id = $1 AND status = 'during'";
+        const query = "UPDATE challenges SET nbdone = nbdone + 1 WHERE id = $1 AND status = 'during'";
         client.query(query, [challengeId], (err, result) => {
             if (err) {
                 console.error(err)
