@@ -16,16 +16,32 @@ router.get("/", (req, res) => {
     });
 })
 
-router.get("/feed", (req, res) => {
-    client.query(`SELECT * FROM challenges WHERE status= 'during' ORDER BY begindate`, (err, result) => {
-        if (err) {
-            console.error("Error fetching actual data:", err);
-            res.status(500).json({ error: "Internal server error" });
-        } else {
-            res.json(result.rows);
-        }
-    });
-})
+router.get("/feed", async (req, res) => {
+    try {
+      const challengesQuery = await client.query(`SELECT * FROM challenges ORDER BY beginDate`);
+      const challenges = challengesQuery.rows;
+  
+      const usersPromises = challenges.map(async (challenge) => {
+        const userQuery = await client.query(`SELECT * FROM users WHERE address = $1`, [challenge.author]);
+        return userQuery.rows[0];
+      });
+  
+      const users = await Promise.all(usersPromises);
+  
+      // Replace author with user object
+      const challengesWithUsers = challenges.map((challenge, index) => {
+        return {
+          ...challenge,
+          author: users[index]
+        };
+      });
+  
+      res.json(challengesWithUsers);
+    } catch (err) {
+      console.error("Error fetching actual data:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
 router.post("/new", (req, res) => {
     try {
