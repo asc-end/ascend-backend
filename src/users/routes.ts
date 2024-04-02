@@ -54,13 +54,6 @@ router.post("/set-user", (req, res) => {
             queryParams.push(cover_picture_url);
             isFirstParam = false;
         }
-        // else {
-        //     query += ', pfp_url = pfp_url';
-        // }
-        // else {
-        //     query += ', cover_picture_url = cover_picture_url';
-        // }
-
         if (!queryParams.length) {
             res.status(400).json({ error: "Please enter at least one param" });
             return;
@@ -86,10 +79,9 @@ router.post("/set-user", (req, res) => {
 
 router.post('/new-user', async (req, res) => {
     try {
-        const { name, address, description } = req.body;
-        console.log(name)
-        const query = "INSERT INTO users (name, address, pfp_url, cover_picture_url, description) SELECT $1, $2, $3, $4, $5 WHERE NOT EXISTS (SELECT 1 FROM users WHERE address = $2) RETURNING id"
-        client.query(query, [name, address, "", "", description], (err, result) => {
+        const { address  } = req.body;
+        const query = "INSERT INTO users (address) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM users WHERE address = $1) RETURNING id"
+        client.query(query, [address,], (err, result) => {
             if (err) {
                 console.error('Error inserting user:', err);
                 res.status(500).json({ error: 'Internal server error' });
