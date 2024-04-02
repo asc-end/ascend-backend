@@ -3,17 +3,34 @@ import express, { Request, Response } from "express";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-    const { address } = req.query
+router.get("/", async (req, res) => {
+    try {
 
-    client.query(`SELECT * FROM challenges WHERE players::text LIKE '%' || $1 || '%' OR author = $1`, [address], (err, result) => {
-        if (err) {
-            console.error("Error fetching actual data:", err);
-            res.status(500).json({ error: "Internal server error" });
-        } else {
-            res.json(result.rows);
-        }
-    });
+        const { address } = req.query
+
+        const challengesQuery = await client.query(`SELECT * FROM challenges WHERE players::text LIKE '%' || $1 || '%' OR author = $1`, [address]);
+        const challenges = challengesQuery.rows;
+
+        const usersPromises = challenges.map(async (challenge) => {
+            const userQuery = await client.query(`SELECT * FROM users WHERE address = $1`, [challenge.author]);
+            return userQuery.rows[0];
+        });
+
+        const users = await Promise.all(usersPromises);
+
+        // Replace author with user object
+        const challengesWithUsers = challenges.map((challenge, index) => {
+            return {
+                ...challenge,
+                author: users[index]
+            };
+        });
+        res.status(200).json(challengesWithUsers);
+    }
+    catch (err) {
+        console.error("Error fetching actual data:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
 })
 
 router.get("/feed", async (req, res) => {
