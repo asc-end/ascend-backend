@@ -16,6 +16,17 @@ router.get("/", (req, res) => {
     });
 })
 
+router.get("/feed", (req, res) => {
+    client.query(`SELECT * FROM challenges WHERE status= 'during'`, (err, result) => {
+        if (err) {
+            console.error("Error fetching actual data:", err);
+            res.status(500).json({ error: "Internal server error" });
+        } else {
+            res.json(result.rows);
+        }
+    });
+})
+
 router.post("/new", (req, res) => {
     try {
 
