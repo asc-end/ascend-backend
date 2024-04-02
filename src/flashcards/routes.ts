@@ -1,4 +1,4 @@
-import {data} from "../../flashcards"
+import {data} from "./flashcards"
 import client from "../db";
 
 export function importFromJson() {
@@ -26,3 +26,4 @@ export function importFromJson() {
         console.log(e)
     }
 }
+
