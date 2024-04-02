@@ -74,8 +74,8 @@ router.get("/friends", (req, res) => {
         WHEN u.address = f.user1 THEN f.user2
         WHEN u.address = f.user2 THEN f.user1
     END as friend
-    FROM friendships f
-    JOIN users u ON (u.address = f.user1 OR u.address = f.user2) AND f.status = 'friends'
+    FROM users u
+    LEFT JOIN friendships f ON (u.address = f.user1 OR u.address = f.user2) AND f.status = 'friends'
     WHERE u.address != $1
 `;
     client.query(query, [req.query.address], (err, result) => {
