@@ -69,14 +69,14 @@ router.get("/not-friends", (req, res) => {
 
 router.get("/friends", (req, res) => {
     const query = `
-    SELECT u.*, f.id AS friendship_id, u.id AS user_id,
-    CASE 
-        WHEN u.address = f.user1 THEN f.user2
-        WHEN u.address = f.user2 THEN f.user1
-    END as friend
-    FROM users u
-    LEFT JOIN friendships f ON (u.address = f.user1 OR u.address = f.user2) AND f.status = 'friends'
-    WHERE u.address != $1
+        SELECT u.*, f.id AS friendship_id,
+            CASE 
+                WHEN u.address = f.user1 THEN f.user2
+                WHEN u.address = f.user2 THEN f.user1
+            END as friend
+        FROM users u
+        JOIN friendships f ON (u.address = f.user1 OR u.address = f.user2)
+        WHERE f.status = 'friends' AND u.address != $1 AND (f.user1 = $1 OR f.user2 = $1)
 `;
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
