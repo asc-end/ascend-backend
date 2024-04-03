@@ -8,14 +8,44 @@ router.get("/", async (req, res) => {
 
         const { address } = req.query
 
-        const challengesQuery = await client.query(`SELECT *
-        FROM challenges
-        WHERE EXISTS (
-          SELECT 1
-          FROM jsonb_array_elements(players::jsonb) AS p -- Ensuring explicit casting to jsonb
-          WHERE (p->>'address') = $1
-        
-        );`, [address]);
+        // const query =`SELECT *
+        // FROM challenges
+        // WHERE EXISTS (
+        //   SELECT 1
+        //   FROM jsonb_array_elements(players::jsonb) AS p -- Ensuring explicit casting to jsonb
+        //   WHERE (p->>'address') = $1
+
+        // );`
+        const query = `SELECT 
+        c.id, 
+        c.beginDate,
+        c.status,
+        c.length,
+        c.nbDone,
+        c.type,
+        c.solStaked,
+        c.challengeData,
+        (
+            SELECT jsonb_agg(
+                jsonb_build_object(
+                'userInfo', u.*,
+                'status', p->>'status'
+                )
+            )
+            FROM jsonb_array_elements(c.players) AS p
+            JOIN users u ON u.address = p->>'address'
+        ) AS players
+    FROM challenges c
+    WHERE EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(c.players) AS p
+        JOIN users u ON u.address = p->>'address'
+        WHERE u.address = $1
+    )`
+
+        const challengesQuery = await client.query(query, [address]);
+
+
         const challenges = challengesQuery.rows;
 
         const usersPromises = challenges.map(async (challenge) => {
@@ -140,7 +170,7 @@ router.post("/set-done", (req, res) => {
     try {
         const { challengeId, status } = req.body;
         const query = "UPDATE challenges SET status = $2 WHERE id = $1";
-        
+
         client.query(query, [challengeId, status], (err, result) => {
             if (err) {
                 console.error(err);
@@ -159,7 +189,7 @@ router.get("/archived", (req, res) => {
     try {
         const { address } = req.query;
         const query = "SELECT * FROM challenges WHERE author = $1 AND status IN ('archived-won', 'archived-lost') ";
-        
+
         client.query(query, [address], (err, result) => {
             if (err) {
                 console.error(err);
