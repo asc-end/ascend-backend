@@ -99,8 +99,7 @@ router.post("/new", (req, res) => {
         console.log(challengeData, players)
         const jsondata = JSON.stringify(challengeData)
         const jsonplayers = JSON.stringify(players)
-        console.log(beginDate, type, status, solStaked, nbDone, length, players, challengeData)
-        const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+        const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
         client.query(query, [beginDate, type, status, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
             if (err) {
                 console.error(err)
