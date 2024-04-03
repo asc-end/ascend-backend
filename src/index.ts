@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS challenges (
     type TEXT,
     solStaked NUMERIC, -- For potential fractional values
     nbDone INTEGER[],
-    players JSONB, -- Using JSONB for better performance on operations
+    players TEXT[], -- Using JSONB for better performance on operations
     challengeData JSONB
 
 );
@@ -104,6 +104,7 @@ app.use('/flashcards', flashcardsRoutes);
 
 
 // client.query('DROP TABLE challenges')
+
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
 })

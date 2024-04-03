@@ -141,15 +141,15 @@ router.get("/feed", async (req, res) => {
 router.post("/new", (req, res) => {
     try {
 
-        const { beginDate, type, status, solStaked, length, players, challengeData } = req.body;
+        const { begindate, type, status, solstaked, length, players, challengedata } = req.body;
 
-        console.log(challengeData, players)
-        const jsondata = JSON.stringify(challengeData)
-        const jsonplayers = JSON.stringify(players)
+        console.log(challengedata, players)
+        const jsondata = JSON.stringify(challengedata)
+        const jsonplayers = players
         const nbDone = new Array(players.length).fill(0)
 
         const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
-        client.query(query, [beginDate, type, status, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
+        client.query(query, [begindate, type, status, solstaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
             if (err) {
                 console.error(err)
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
