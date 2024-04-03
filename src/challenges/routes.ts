@@ -49,7 +49,10 @@ router.get("/feed", async (req, res) => {
             INNER JOIN friendships f ON (c.author = f.user1 OR c.author = f.user2)
             WHERE (f.user1 = $1 OR f.user2 = $1)
             AND f.status = 'friends'
-            ORDER BY c.beginDate DESC OFFSET $2 LIMIT $3
+            AND c.author != $1
+            ORDER BY c.beginDate DESC
+            OFFSET $2
+            LIMIT $3;
         `, [userAddress, cursor, limit]);
         const challenges = challengesQuery.rows;
 
