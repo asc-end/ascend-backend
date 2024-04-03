@@ -189,7 +189,7 @@ router.post("/new", (req, res) => {
                     });
                 });
 
-                res.status(200).send('Challenge and associated players created');
+                res.status(200).send({ message: 'Challenge and associated players created'});
             }
         })
     } catch (err) {
