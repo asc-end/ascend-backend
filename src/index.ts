@@ -65,20 +65,45 @@ CREATE TABLE IF NOT EXISTS friendships (
     if (err) throw err;
 });
 
+// client.query(`
+// CREATE TABLE IF NOT EXISTS challenges (
+//     id SERIAL PRIMARY KEY,
+//     beginDate TIMESTAMP,
+//     status TEXT,
+//     length INTEGER,
+//     type TEXT,
+//     solStaked NUMERIC, -- For potential fractional values
+//     nbDone INTEGER[],
+//     players TEXT[], -- Using JSONB for better performance on operations
+//     challengeData JSONB
+// );
+// `, (err, res) => {
+//     if (err) throw err;
+// });
+
 client.query(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
-    beginDate TIMESTAMP,
-    status TEXT,
+    begindate TIMESTAMP,
     length INTEGER,
     type TEXT,
-    solStaked NUMERIC, -- For potential fractional values
-    nbDone INTEGER[],
-    players TEXT[], -- Using JSONB for better performance on operations
-    challengeData JSONB
-
+    solStaked NUMERIC,
+    author TEXT,
+    challengedata JSONB
 );
 `, (err, res) => {
+    if (err) throw err;
+});
+
+client.query(`
+    CREATE TABLE IF NOT EXISTS challenges_players (
+        id SERIAL PRIMARY KEY,
+        main_id INTEGER REFERENCES challenges(id),
+        status TEXT,
+        address TEXT,
+        nbDone INTEGER
+    )
+    `, (err, res) => {
     if (err) throw err;
 });
 
@@ -96,14 +121,13 @@ CREATE TABLE IF NOT EXISTS languagecards (
     if (err) throw err;
 });
 
+// client.query("DROP table challenges CASCADE")
+// client.query("DROP table challenges_players CASCADE")
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
 app.use('/github', githubRoutes);
 app.use('/flashcards', flashcardsRoutes);
-
-
-// client.query('DROP TABLE challenges')
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
@@ -196,7 +220,7 @@ async function testCommits() {
 
 }
 
-testCommits()
+// testCommits()
 const cron = require('node-cron');
 
 cron.schedule('0 1 * * *', async () => {
