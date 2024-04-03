@@ -146,8 +146,8 @@ router.post("/new", (req, res) => {
         console.log(challengeData, players)
         const jsondata = JSON.stringify(challengeData)
         const jsonplayers = JSON.stringify(players)
-        const nbDone = JSON.stringify(new Array(players.length).fill(0))
-        
+        const nbDone = new Array(players.length).fill(0)
+
         const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
         client.query(query, [beginDate, type, status, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
             if (err) {
