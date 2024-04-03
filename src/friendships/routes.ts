@@ -24,55 +24,9 @@ router.get("/", (req, res) => {
         });
 })
 
-router.get("/pending", (req, res) => {
-    const query = `
-    SELECT 
-    u.*, 
-    CASE 
-        WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
-        WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
-        WHEN f.status = 'friends' THEN 'friends'
-    END AS status,
-    f.id AS friendship_id
-FROM 
-    users u
-LEFT JOIN 
-    friendships f ON (u.address = f.user1 OR u.address = f.user2)
-WHERE 
-    u.address != $1
-    AND (f.status != 'friends' AND f.status IS NOT NULL);
-`;
-    client.query(query, [req.query.address], (err, result) => {
-        if (err) {
-            console.error("Error fetching actual data:", err);
-            res.status(500).json({ ok: false, error: "Internal server error" });
-        } else {
-            res.json(result.rows);
-        }
-    });
-})
-
 router.get("/not-friends", (req, res) => {
     try {
-        // const query = `
-        //     SELECT
-        //     u.*,
-        //     CASE
-        //         WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
-        //         WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
-        //         WHEN f.status = 'friends' THEN 'friends'
-        //     END AS status,
-        //     f.id AS friendship_id
-        // FROM
-        //     users u
-        // LEFT JOIN
-        //     friendships f ON (u.address = f.user1 OR u.address = f.user2)
-        // WHERE
-        //     u.address != $1
-        //     AND (f.status != 'friends' OR f.status IS NULL);`
-        //     ;
-
-            const query = `
+        const query = `
             SELECT
                 u.*,
                     CASE
@@ -98,7 +52,6 @@ router.get("/not-friends", (req, res) => {
                 res.json(result.rows);
             }
         });
-
     }
     catch (e) {
         res.status(500).json({ ok: false, erro: "Internal server error" })
@@ -108,21 +61,23 @@ router.get("/not-friends", (req, res) => {
 
 router.get("/friends", (req, res) => {
     const query = `
-    SELECT 
-    u.*, 
-    CASE 
-        WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
-        WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
+    SELECT
+    u.*,
+    CASE
+        WHEN f.user1 = $1 AND f.status = 'pending' AND f.user2 = u.address THEN 'request'
+        WHEN f.user2 = $1 AND f.status = 'pending' AND f.user1 = u.address THEN 'invite'
         WHEN f.status = 'friends' THEN 'friends'
+        WHEN f.status IS NULL THEN 'none'
+        ELSE f.status
     END AS status,
     f.id AS friendship_id
-FROM 
+FROM
     users u
-LEFT JOIN 
-    friendships f ON (u.address = f.user1 OR u.address = f.user2)
-WHERE 
-    u.address != $1
-    AND f.status = 'friends';`;
+LEFT JOIN
+    friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
+WHERE
+    u.address != $1;
+    `
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
