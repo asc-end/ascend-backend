@@ -3,6 +3,7 @@ import userRoutes from "./users/routes"
 import friendshipsRoutes from "./friendships/routes"
 import challengesRoutes from "./challenges/routes"
 import githubRoutes from "./github/routes"
+import flashcardsRoutes from "./flashcards/routes"
 import client from "./db";
 import { Octokit } from "octokit";
 import { importFromJson } from "./flashcards/routes";
@@ -99,6 +100,7 @@ app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
 app.use('/github', githubRoutes);
+app.use('/flashcards', flashcardsRoutes);
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });

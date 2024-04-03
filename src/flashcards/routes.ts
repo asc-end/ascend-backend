@@ -1,6 +1,8 @@
 import {data} from "./flashcards"
 import client from "../db";
+import express, { Request, Response } from "express";
 
+const router = express.Router();
 export function importFromJson() {
     try{
 
@@ -26,4 +28,27 @@ export function importFromJson() {
         console.log(e)
     }
 }
+
+router.get("/", async (req, res) => {
+    try {
+
+
+        client.query(`SELECT * FROM languagecards LIMIT 15`, (err, result) => {
+            if (err) {
+                console.error("Error fetching actual data:", err);
+                res.status(500).json({ error: "Internal server error" });
+            } else {
+                res.json(result.rows);
+            }
+        });
+
+    }
+    catch (err) {
+        console.error("Error fetching actual data:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+})
+
+export default router 
+
 
