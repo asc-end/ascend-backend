@@ -132,23 +132,21 @@ router.post("/validate-day", (req, res) => {
 
 router.post("/set-done", (req, res) => {
     try {
-
-        const { challengeId, status} = req.body;
-
-        const query = "UPDATE challenges SET nbdone = nbdone + 1 WHERE id = $1 AND status = '$2'";
+        const { challengeId, status } = req.body;
+        const query = "UPDATE challenges SET status = $2 WHERE id = $1";
+        
         client.query(query, [challengeId, status], (err, result) => {
             if (err) {
-                console.error(err)
+                console.error(err);
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
                 return;
             }
-            res.status(200).json({ message: 'Challenge incremented successfully.' });
-        })
+            res.status(200).json({ message: 'Challenge updated successfully.' });
+        });
     } catch (err) {
-        console.error('Error incrementing challenge:', err);
+        console.error('Error updating challenge:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
     }
-
-})
+});
 
 export default router 
