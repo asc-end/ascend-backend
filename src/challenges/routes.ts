@@ -25,19 +25,27 @@ router.get("/", async (req, res) => {
                     'name', u.name, 
                     'pfp_url', u.pfp_url, 
                     'cover_picture_url', u.cover_picture_url, 
-                    'description', u.description
-                )
+                    'description', u.description)
             ) AS players
         FROM 
-            challenges c
+            (
+            SELECT 
+                c.id
+            FROM 
+                challenges c
+            JOIN 
+                challenges_players cp ON c.id = cp.main_id
+            WHERE 
+                cp.address = $1
+            ) sub
+        JOIN 
+            challenges c ON c.id = sub.id
         JOIN 
             challenges_players cp ON c.id = cp.main_id
         JOIN 
             users u ON u.address = cp.address
         GROUP BY 
-            c.id
-        HAVING 
-            bool_or(u.address = $1)`
+            c.id`
         const challengesQuery = await client.query(query, [address]);
 
 
