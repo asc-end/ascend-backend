@@ -54,23 +54,42 @@ WHERE
 
 router.get("/not-friends", (req, res) => {
     try {
-        const query = `
-        SELECT 
-        u.*, 
-        CASE 
-            WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
-            WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
-            WHEN f.status = 'friends' THEN 'friends'
-        END AS status,
-        f.id AS friendship_id
-    FROM 
-        users u
-    LEFT JOIN 
-        friendships f ON (u.address = f.user1 OR u.address = f.user2)
-    WHERE 
-        u.address != $1
-        AND (f.status != 'friends' OR f.status IS NULL);`
-            ;
+        // const query = `
+        //     SELECT
+        //     u.*,
+        //     CASE
+        //         WHEN f.user1 = $1 AND f.status != 'friends' THEN 'request'
+        //         WHEN f.user2 = $1 AND f.status != 'friends' THEN 'invite'
+        //         WHEN f.status = 'friends' THEN 'friends'
+        //     END AS status,
+        //     f.id AS friendship_id
+        // FROM
+        //     users u
+        // LEFT JOIN
+        //     friendships f ON (u.address = f.user1 OR u.address = f.user2)
+        // WHERE
+        //     u.address != $1
+        //     AND (f.status != 'friends' OR f.status IS NULL);`
+        //     ;
+
+            const query = `
+            SELECT
+                u.*,
+                    CASE
+                        WHEN f.user1 = $1 AND f.status = 'pending' AND f.user2 = u.address THEN 'request'
+                        WHEN f.user2 = $1 AND f.status = 'pending' AND f.user1 = u.address THEN 'invite'
+                        WHEN f.status = 'friends' THEN 'friends'
+                        ELSE 'unknown'
+                    END AS status,
+                    f.id AS friendship_id
+                FROM
+                    users u
+                LEFT JOIN
+                    friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
+                WHERE
+                    u.address != $1
+                    AND ((f.status IS NULL) OR (f.status NOT IN ('friends')));
+            `
         client.query(query, [req.query.address], (err, result) => {
             if (err) {
                 console.error("Error fetching actual data:", err);
