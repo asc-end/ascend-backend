@@ -67,7 +67,7 @@ router.get("/friends", (req, res) => {
         WHEN f.user1 = $1 AND f.status = 'pending' AND f.user2 = u.address THEN 'request'
         WHEN f.user2 = $1 AND f.status = 'pending' AND f.user1 = u.address THEN 'invite'
         WHEN f.status = 'friends' THEN 'friends'
-        WHEN f.status IS NULL THEN 'none'
+        WHEN f.status IS NULL THEN 'unkown'
         ELSE f.status
     END AS status,
     f.id AS friendship_id
@@ -76,7 +76,8 @@ FROM
 LEFT JOIN
     friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
 WHERE
-    u.address != $1;
+    u.address != $1
+    AND f.status != 'unkown'
     `
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
