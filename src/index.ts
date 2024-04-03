@@ -68,15 +68,15 @@ CREATE TABLE IF NOT EXISTS friendships (
 client.query(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
-    beginDate NUMBER,
-    status STRING,
-    length NUMBER,
-    nbDone NUMBER,
+    beginDate TIMESTAMP,
+    status TEXT,
+    length INTEGER,
+    nbDone INTEGER,
     type TEXT,
-    solStaked NUMBER,
-    author STRING,
-    players JSON,
-    challengeData JSON
+    solStaked NUMERIC, -- For potential fractional values
+    players JSONB, -- Using JSONB for better performance on operations
+    challengeData JSONB
+
 );
 `, (err, res) => {
     if (err) throw err;

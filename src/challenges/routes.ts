@@ -8,7 +8,14 @@ router.get("/", async (req, res) => {
 
         const { address } = req.query
 
-        const challengesQuery = await client.query(`SELECT * FROM challenges WHERE players::text LIKE '%' || $1 || '%' OR author = $1`, [address]);
+        const challengesQuery = await client.query(`SELECT *
+        FROM challenges
+        WHERE EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(players::jsonb) AS p -- Ensuring explicit casting to jsonb
+          WHERE (p->>'address') = $1
+        
+        );`, [address]);
         const challenges = challengesQuery.rows;
 
         const usersPromises = challenges.map(async (challenge) => {
@@ -87,14 +94,14 @@ router.get("/feed", async (req, res) => {
 router.post("/new", (req, res) => {
     try {
 
-        const { beginDate, type, status, author, solStaked, nbDone, length, players, challengeData } = req.body;
+        const { beginDate, type, status, solStaked, nbDone, length, players, challengeData } = req.body;
 
         console.log(challengeData, players)
         const jsondata = JSON.stringify(challengeData)
         const jsonplayers = JSON.stringify(players)
-        console.log(beginDate, type, status, author, solStaked, nbDone, length, players, challengeData)
-        const query = "INSERT INTO challenges (beginDate, type, status, author, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-        client.query(query, [beginDate, type, status, author, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
+        console.log(beginDate, type, status, solStaked, nbDone, length, players, challengeData)
+        const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+        client.query(query, [beginDate, type, status, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
             if (err) {
                 console.error(err)
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
@@ -148,5 +155,25 @@ router.post("/set-done", (req, res) => {
         res.status(500).json({ error: `Internal server error ${err}` });
     }
 });
+
+router.get("/archived", (req, res) => {
+    try {
+        const { address } = req.query;
+        const query = "SELECT * FROM challenges WHERE author = $1 AND status IN ('archived-won', 'archived-lost') ";
+        
+        client.query(query, [address], (err, result) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: `Internal server error : ${err.message}` });
+                return;
+            }
+            res.status(200).json(result.rows);
+        });
+    } catch (err) {
+        console.error('Error updating challenge:', err);
+        res.status(500).json({ error: `Internal server error ${err}` });
+    }
+});
+
 
 export default router 
