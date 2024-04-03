@@ -71,12 +71,11 @@ CREATE TABLE IF NOT EXISTS challenges (
     beginDate TIMESTAMP,
     status TEXT,
     length INTEGER,
-    nbDone INTEGER,
     type TEXT,
     solStaked NUMERIC, -- For potential fractional values
+    nbDone JSONB,
     players JSONB, -- Using JSONB for better performance on operations
     challengeData JSONB
-
 );
 `, (err, res) => {
     if (err) throw err;
@@ -101,6 +100,7 @@ app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
 app.use('/github', githubRoutes);
 app.use('/flashcards', flashcardsRoutes);
+
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });

@@ -25,22 +25,22 @@ router.get("/", async (req, res) => {
         c.type,
         c.solStaked,
         c.challengeData,
-        (
-            SELECT jsonb_agg(
-                jsonb_build_object(
-                'userInfo', u.*,
-                'status', p->>'status'
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                    'userInfo', u.*,
+                    'status', p->>'status'
+                    )
                 )
-            )
+                FROM jsonb_array_elements(c.players) AS p
+                JOIN users u ON u.address = p->>'address'
+            ) AS players
+        FROM challenges c
+        WHERE EXISTS (
+            SELECT 1
             FROM jsonb_array_elements(c.players) AS p
             JOIN users u ON u.address = p->>'address'
-        ) AS players
-    FROM challenges c
-    WHERE EXISTS (
-        SELECT 1
-        FROM jsonb_array_elements(c.players) AS p
-        JOIN users u ON u.address = p->>'address'
-        WHERE u.address = $1
+            WHERE u.address = $1
     )`
 
         const challengesQuery = await client.query(query, [address]);
@@ -81,15 +81,32 @@ router.get("/feed", async (req, res) => {
         console.log(cursor, userAddress)
         // Query to select challenges of friends
         const challengesQuery = await client.query(`
-            SELECT c.*
-            FROM challenges c
-            INNER JOIN friendships f ON (c.author = f.user1 OR c.author = f.user2)
-            WHERE (f.user1 = $1 OR f.user2 = $1)
-            AND f.status = 'friends'
-            AND c.author != $1
-            ORDER BY c.beginDate DESC
-            OFFSET $2
-            LIMIT $3;
+        SELECT 
+        c.id, 
+        c.beginDate,
+        c.status,
+        c.length,
+        c.nbDone,
+        c.type,
+        c.solStaked,
+        c.challengeData,
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                    'userInfo', u.*,
+                    'status', p->>'status'
+                    )
+                )
+                FROM jsonb_array_elements(c.players) AS p
+                JOIN users u ON u.address = p->>'address'
+            ) AS players
+        FROM challenges c
+        WHERE EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(c.players) AS p
+            JOIN users u ON u.address = p->>'address'
+            WHERE u.address = $1
+    )
         `, [userAddress, cursor, limit]);
         const challenges = challengesQuery.rows;
 
@@ -124,11 +141,13 @@ router.get("/feed", async (req, res) => {
 router.post("/new", (req, res) => {
     try {
 
-        const { beginDate, type, status, solStaked, nbDone, length, players, challengeData } = req.body;
+        const { beginDate, type, status, solStaked, length, players, challengeData } = req.body;
 
         console.log(challengeData, players)
         const jsondata = JSON.stringify(challengeData)
         const jsonplayers = JSON.stringify(players)
+        const nbDone = JSON.stringify(new Array(players.length).fill(0))
+        
         const query = "INSERT INTO challenges (beginDate, type, status, solStaked, nbDone, length, players, challengeData) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
         client.query(query, [beginDate, type, status, solStaked, nbDone, length, jsonplayers, jsondata], (err, result) => {
             if (err) {
