@@ -65,22 +65,6 @@ CREATE TABLE IF NOT EXISTS friendships (
     if (err) throw err;
 });
 
-// client.query(`
-// CREATE TABLE IF NOT EXISTS challenges (
-//     id SERIAL PRIMARY KEY,
-//     beginDate TIMESTAMP,
-//     status TEXT,
-//     length INTEGER,
-//     type TEXT,
-//     solStaked NUMERIC, -- For potential fractional values
-//     nbDone INTEGER[],
-//     players TEXT[], -- Using JSONB for better performance on operations
-//     challengeData JSONB
-// );
-// `, (err, res) => {
-//     if (err) throw err;
-// });
-
 client.query(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
@@ -135,11 +119,13 @@ app.get("/test", (req, res) => {
 
 async function setLostChallengesAsFinished() {
     const query = `
-            UPDATE challenges 
-            SET status = 'finished' 
-            WHERE status = 'during' 
-            AND beginDate + (nbDone * INTERVAL '1 day') < current_date
-            `;
+        UPDATE challenges_players 
+        SET status = 'lost' 
+        FROM challenges 
+        WHERE challenges_players.main_id = challenges.id 
+        AND challenges_players.status = 'during' 
+        AND challenges.begindate + (challenges_players.nbDone * INTERVAL '1 day') < CURRENT_DATE;
+    `;
     client.query(query, (err, result) => {
         if (err)
             console.error("Error updating lost challenges", err);

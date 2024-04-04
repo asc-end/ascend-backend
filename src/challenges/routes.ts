@@ -195,7 +195,7 @@ router.post("/new", (req, res) => {
                     });
                 });
 
-                res.status(200).send({ message: 'Challenge and associated players created'});
+                res.status(200).send({ message: 'Challenge and associated players created' });
             }
         })
     } catch (err) {
@@ -250,7 +250,15 @@ router.post("/set-done", (req, res) => {
     try {
         const { challengeId, address } = req.body;
 
-        const query = "UPDATE challenges_players SET status='archived' WHERE main_id = $1 AND address = $2";
+        const query = `
+            UPDATE challenges_players 
+            SET status = CASE 
+                WHEN status = 'won' THEN 'archived-won'
+                WHEN status = 'lost' THEN 'archived-lost'
+                ELSE status
+            END
+            WHERE main_id = $1 AND address = $2
+        `;
         client.query(query, [challengeId, address], (err, result) => {
             if (err) {
                 console.error(err);
