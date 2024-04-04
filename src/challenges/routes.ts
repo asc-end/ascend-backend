@@ -18,32 +18,30 @@ router.get("/", async (req, res) => {
             c.challengeData,
             json_agg(
                 json_build_object(
-                    'id', cp.id, 
-                    'status', cp.status, 
-                    'nbdone', cp.nbdone, 
-                    'address', cp.address, 
-                    'name', u.name, 
-                    'pfp_url', u.pfp_url, 
-                    'cover_picture_url', u.cover_picture_url, 
-                    'description', u.description)
+                    'id', cp_all.id, 
+                    'status', cp_all.status, 
+                    'nbdone', cp_all.nbdone, 
+                    'address', cp_all.address, 
+                    'name', u_all.name, 
+                    'pfp_url', u_all.pfp_url, 
+                    'cover_picture_url', u_all.cover_picture_url, 
+                    'description', u_all.description)
             ) AS players
         FROM 
             (
-            SELECT 
-                c.id
+            SELECT distinct c.id
             FROM 
                 challenges c
             JOIN 
                 challenges_players cp ON c.id = cp.main_id
+            JOIN 
+                users u ON u.address = cp.address
             WHERE 
                 cp.address = $1
             ) sub
-        JOIN 
-            challenges c ON c.id = sub.id
-        JOIN 
-            challenges_players cp ON c.id = cp.main_id
-        JOIN 
-            users u ON u.address = cp.address
+        JOIN challenges c ON c.id = sub.id
+        JOIN challenges_players cp_all ON c.id = cp_all.main_id
+        JOIN users u_all ON u_all.address = cp_all.address
         GROUP BY 
             c.id`
         const challengesQuery = await client.query(query, [address]);
@@ -252,7 +250,8 @@ router.post("/set-done", (req, res) => {
     try {
         const { challengeId, address } = req.body;
 
-        const query = "UPDATE challenges_players SET status='archived' WHERE main_id = $1 AND address = $2 AND nbDone = (SELECT length FROM challenges WHERE id = $1)";        client.query(query, [challengeId, address], (err, result) => {
+        const query = "UPDATE challenges_players SET status='archived' WHERE main_id = $1 AND address = $2";
+        client.query(query, [challengeId, address], (err, result) => {
             if (err) {
                 console.error(err);
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
