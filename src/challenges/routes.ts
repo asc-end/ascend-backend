@@ -155,7 +155,17 @@ router.get("/feed", async (req, res) => {
 router.get("/archived", (req, res) => {
     try {
         const { address } = req.query;
-        const query = "SELECT * FROM challenges WHERE author = $1 AND status IN ('archived-won', 'archived-lost') ";
+        const query = `
+                SELECT
+                challenges.*,
+                challenges_players.status,
+                challenges_players.address,
+                challenges_players.nbDone
+            FROM challenges
+            INNER JOIN challenges_players ON challenges.id = challenges_players.main_id
+            WHERE challenges_players.status IN ('archived-won', 'archived-lost', 'won', 'lost')
+                AND challenges_players.address = $1
+            `;
 
         client.query(query, [address], (err, result) => {
             if (err) {
@@ -230,7 +240,14 @@ router.post("/validate-day", (req, res) => {
 
         const { challengeId, address, nbDone } = req.body;
 
-        const query = "UPDATE challenges_players SET nbdone = nbdone + 1 WHERE main_id = $1 AND address = $2";
+        const query = `UPDATE challenges_players
+        SET 
+            nbDone = nbDone + 1,
+            status = CASE 
+                WHEN (SELECT length FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+                ELSE status
+            END
+        WHERE main_id = $1 AND address = $2`;
         client.query(query, [challengeId, address], (err, result) => {
             if (err) {
                 console.error(err)

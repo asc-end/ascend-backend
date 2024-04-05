@@ -7,6 +7,9 @@ import flashcardsRoutes from "./flashcards/routes"
 import client from "./db";
 import { Octokit } from "octokit";
 import { importFromJson } from "./flashcards/routes";
+import * as web3 from "@solana/web3.js"
+
+
 const cors = require("cors");
 require('dotenv').config()
 
@@ -149,13 +152,20 @@ async function testCommits() {
     let codeChallenges: any[] = []
 
     client.query(`
-    SELECT * FROM challenges 
-    WHERE type = 'Code' AND status = 'during'
+    SELECT
+        challenges.*,
+        challenges_players.status,
+        challenges_players.address,
+        challenges_players.nbDone
+    FROM challenges
+    INNER JOIN challenges_players ON challenges.id = challenges_players.main_id
+    WHERE challenges.type = 'Code' AND challenges_players.status = 'during'
 `, (err, res) => {
         if (err) {
             throw err;
         }
         codeChallenges = res.rows
+        console.log(codeChallenges)
         codeChallenges?.forEach(async (challenge) => {
             console.log(challenge)
             try {
@@ -172,6 +182,7 @@ async function testCommits() {
                 }).then((r) => {
                     //@ts-ignore
 
+
                     if (r.status !== 200) return
                     let commitToday = false
                     //@ts-ignore
@@ -186,8 +197,15 @@ async function testCommits() {
                     if (!commitToday)
                         console.log("no commit today for ", challenge.challengedata.repo.name)
                     if (commitToday) {
-                        const query = "UPDATE challenges SET nbDone = nbDone + 1 WHERE id = $1 AND status = 'during'";
-                        client.query(query, [challenge.id], (err, res) => {
+                        const query = `UPDATE challenges_players
+                                        SET 
+                                            nbDone = nbDone + 1,
+                                            status = CASE 
+                                                WHEN (SELECT length FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+                                                ELSE status
+                                            END
+                                        WHERE main_id = $1 AND address = $2`;
+                        client.query(query, [challenge.id, challenge.address], (err, res) => {
                             if (err) {
                                 throw err;
                             }
@@ -205,6 +223,8 @@ async function testCommits() {
 
 
 }
+
+testCommits()
 
 // testCommits()
 const cron = require('node-cron');
