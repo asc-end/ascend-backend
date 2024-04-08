@@ -245,6 +245,7 @@ router.post("/validate-day", (req, res) => {
         console.log(challengeId, solanaid, author, address)
         let txSuccess = validate(solanaid, author, address)
         if(!txSuccess)  {
+            console.log("TX ERROR")
             return res.status(500).json({error: `Tx didnt land on solana`})
         }
         
