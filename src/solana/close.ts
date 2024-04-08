@@ -1,7 +1,7 @@
 
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { keypair, program } from "./test";
+import { connection, keypair, program } from "./test";
 import { getProgramDerivedAddress } from "./utils";
 
 
@@ -21,4 +21,22 @@ export async function close(id: number, authorAddress: string) {
         console.error(e)
         return false
     }
+}
+
+
+export async function getAllClosable(){
+    const accounts = await connection.getProgramAccounts(program.programId,
+        {
+            // filters: [
+            //     {
+            //         memcmp: {
+
+            //         }
+            //     }
+            // ]
+        })
+
+    accounts.forEach((account, i) => {
+        console.log(account.account.data, account.pubkey)
+    })
 }

@@ -13,7 +13,8 @@ import {
 import * as bip39 from "bip39";
 import { Vault } from "./vault";
 import * as idl from './solana'
-const IDL: Vault = require('./vault.json');
+// const IDL: Vault = require('./vault.json');
+import IDL from './vault.json';
 import { Program, utils } from '@coral-xyz/anchor';
 import * as anchor from "@coral-xyz/anchor";
 
@@ -38,7 +39,7 @@ const user1 = new Keypair()
 // anchor.setProvider(anchor.AnchorProvider.env());
 const wallet = new NodeWallet(keypair);
 const provider = new AnchorProvider(connection, wallet, {})
-export const program = new Program<Vault>(IDL, programID, provider);
+export const program = new Program<Vault>(IDL as unknown as Vault, programID, provider);
 
 
 const players = [user1.publicKey, ...Array.from({ length: 4 }, () => Keypair.generate().publicKey)];
