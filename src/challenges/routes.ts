@@ -238,9 +238,9 @@ router.post("/accept", (req, res) => {
 
 router.post("/validate-day", (req, res) => {
     try {
-        const { challengeId, author, address  } = req.body;
+        const { challengeId, solanaId, author, address  } = req.body;
         
-        let txSuccess = validate(challengeId, author, address)
+        let txSuccess = validate(solanaId, author, address)
         if(!txSuccess) throw new Error("tx didnt lend");
         
         const query = `UPDATE challenges_players
