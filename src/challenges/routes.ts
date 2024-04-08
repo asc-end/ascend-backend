@@ -184,11 +184,12 @@ router.get("/archived", (req, res) => {
 
 router.post("/new", (req, res) => {
     try {
-        const { begindate, type, stake, time, players, challengedata } = req.body;
+        const { begindate, type, stake, time, players, challengedata, solanaid } = req.body;
 
+        console.log(begindate, type, stake, time, players, challengedata, solanaid)
         const jsondata = JSON.stringify(challengedata)
-        const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
-        client.query(challengeQuery, [begindate, type, stake, time, players[0], jsondata], (err, result) => {
+        const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
+        client.query(challengeQuery, [begindate, type, stake, time, players[0], jsondata, solanaid], (err, result) => {
             if (err) {
                 console.log(err.stack);
                 res.status(500).send('Error while creating challenge');
