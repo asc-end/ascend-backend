@@ -244,7 +244,9 @@ router.post("/validate-day", (req, res) => {
         const { challengeId, solanaid, author, address  } = req.body;
         console.log(challengeId, solanaid, author, address)
         let txSuccess = validate(solanaid, author, address)
-        if(!txSuccess) return res.status(500)
+        if(!txSuccess)  {
+            return res.status(500).json({error: `Tx didnt land on solana`})
+        }
         
         const query = `UPDATE challenges_players
         SET 
