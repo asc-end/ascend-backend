@@ -47,6 +47,7 @@ export async function getAllClosable(){
     let accountsToClose = accounts.map((account, i) => {
         const decoded = borshAccount.decode(account.account.data)
         let state = decoded.state 
+        console.log(decoded.counter)
         if(decoded.state == 2)
             return {id: decoded.id, author: decoded.players[0]}
         return null

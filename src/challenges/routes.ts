@@ -13,9 +13,9 @@ router.get("/", async (req, res) => {
             SELECT 
             c.id, 
             c.beginDate,
-            c.length,
+            c.time,
             c.type,
-            c.solStaked,
+            c.stake,
             c.challengeData,
             json_agg(
                 json_build_object(
@@ -86,9 +86,9 @@ router.get("/feed", async (req, res) => {
         const query = `SELECT 
                 c.id, 
                 c.beginDate,
-                c.length,
+                c.time,
                 c.type,
-                c.solStaked,
+                c.stake,
                 c.challengeData,
                 json_agg(
                   json_build_object(
@@ -184,11 +184,11 @@ router.get("/archived", (req, res) => {
 
 router.post("/new", (req, res) => {
     try {
-        const { begindate, type, solstaked, length, players, challengedata } = req.body;
+        const { begindate, type, stake, time, players, challengedata } = req.body;
 
         const jsondata = JSON.stringify(challengedata)
-        const challengeQuery = "INSERT INTO challenges (beginDate, type, solStaked, length, author, challengedata) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
-        client.query(challengeQuery, [begindate, type, solstaked, length, players[0], jsondata], (err, result) => {
+        const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
+        client.query(challengeQuery, [begindate, type, stake, time, players[0], jsondata], (err, result) => {
             if (err) {
                 console.log(err.stack);
                 res.status(500).send('Error while creating challenge');
@@ -240,12 +240,14 @@ router.post("/validate-day", (req, res) => {
     try {
         const { challengeId, author, address  } = req.body;
         
-        validate(challengeId, author, address)
+        let txSuccess = validate(challengeId, author, address)
+        if(!txSuccess) throw new Error("tx didnt lend");
+        
         const query = `UPDATE challenges_players
         SET 
             nbDone = nbDone + 1,
             status = CASE 
-                WHEN (SELECT length FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+                WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
                 ELSE status
             END
         WHERE main_id = $1 AND address = $2`;

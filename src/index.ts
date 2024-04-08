@@ -169,9 +169,9 @@ async function testCommits() {
             throw err;
         }
         codeChallenges = res.rows
-        console.log(codeChallenges)
+        // console.log(codeChallenges)
         codeChallenges?.forEach(async (challenge) => {
-            console.log(challenge)
+            // console.log(challenge)
             try {
                 if (!challenge.challengedata) return
                 await octokit.request(`GET /repos/${challenge.challengedata.user}/${challenge.challengedata.repo.name}/commits`, {
@@ -205,7 +205,7 @@ async function testCommits() {
                                         SET 
                                             nbDone = nbDone + 1,
                                             status = CASE 
-                                                WHEN (SELECT length FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+                                                WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
                                                 ELSE status
                                             END
                                         WHERE main_id = $1 AND address = $2`;
