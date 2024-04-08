@@ -239,11 +239,11 @@ router.post("/accept", (req, res) => {
     }
 })
 
-router.post("/validate-day", (req, res) => {
+router.post("/validate-day", async (req, res) => {
     try {
         const { challengeId, solanaid, author, address  } = req.body;
         console.log(challengeId, solanaid, author, address)
-        let txSuccess = validate(solanaid, author, address)
+        let txSuccess = await validate(solanaid, author, address)
         if(!txSuccess)  {
             console.log("TX ERROR")
             return res.status(500).json({error: `Tx didnt land on solana`})
