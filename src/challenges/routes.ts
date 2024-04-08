@@ -17,6 +17,7 @@ router.get("/", async (req, res) => {
             c.type,
             c.stake,
             c.challengeData,
+            c.solanaid
             json_agg(
                 json_build_object(
                     'id', cp_all.id, 
@@ -90,6 +91,7 @@ router.get("/feed", async (req, res) => {
                 c.type,
                 c.stake,
                 c.challengeData,
+                c.solanaid
                 json_agg(
                   json_build_object(
                       'id', cp_all.id, 
