@@ -111,8 +111,8 @@ CREATE TABLE IF NOT EXISTS languagecards (
     if (err) throw err;
 });
 
-client.query("DROP table challenges CASCADE")
-client.query("DROP table challenges_players CASCADE")
+// client.query("DROP table challenges CASCADE")
+// client.query("DROP table challenges_players CASCADE")
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
