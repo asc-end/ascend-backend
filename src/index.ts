@@ -4,6 +4,7 @@ import friendshipsRoutes from "./friendships/routes"
 import challengesRoutes from "./challenges/routes"
 import githubRoutes from "./github/routes"
 import flashcardsRoutes from "./flashcards/routes"
+import solanaRoutes from "./solana/solana"
 import client from "./db";
 import { Octokit } from "octokit";
 import { importFromJson } from "./flashcards/routes";
@@ -115,6 +116,7 @@ app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
 app.use('/github', githubRoutes);
 app.use('/flashcards', flashcardsRoutes);
+app.use('/solana', solanaRoutes);
 
 app.get("/test", (req, res) => {
     res.status(200).json({ "message": "test" });
@@ -225,6 +227,8 @@ async function testCommits() {
 }
 
 testCommits()
+
+
 
 // testCommits()
 const cron = require('node-cron');

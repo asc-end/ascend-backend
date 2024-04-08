@@ -1,5 +1,6 @@
 import client from "../db";
 import express, { Request, Response } from "express";
+import { validate } from "../solana/validate";
 
 const router = express.Router();
 
@@ -237,9 +238,9 @@ router.post("/accept", (req, res) => {
 
 router.post("/validate-day", (req, res) => {
     try {
-
-        const { challengeId, address, nbDone } = req.body;
-
+        const { challengeId, author, address  } = req.body;
+        
+        validate(challengeId, author, address)
         const query = `UPDATE challenges_players
         SET 
             nbDone = nbDone + 1,
