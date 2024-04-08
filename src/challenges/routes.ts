@@ -242,7 +242,7 @@ router.post("/validate-day", (req, res) => {
         const { challengeId, solanaId, author, address  } = req.body;
         
         let txSuccess = validate(solanaId, author, address)
-        if(!txSuccess) throw new Error("tx didnt lend");
+        if(!txSuccess) return res.status(500)
         
         const query = `UPDATE challenges_players
         SET 
