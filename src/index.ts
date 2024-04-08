@@ -9,6 +9,7 @@ import client from "./db";
 import { Octokit } from "octokit";
 import { importFromJson } from "./flashcards/routes";
 import * as web3 from "@solana/web3.js"
+import { getAllClosable } from "./solana/close";
 
 
 const cors = require("cors");
@@ -73,9 +74,10 @@ client.query(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
     begindate TIMESTAMP,
-    length INTEGER,
+    solId INTEGER,
+    time INTEGER,
     type TEXT,
-    solStaked NUMERIC,
+    stake INTEGER,
     author TEXT,
     challengedata JSONB
 );
@@ -226,9 +228,9 @@ async function testCommits() {
 
 }
 
-testCommits()
+// testCommits()
 
-
+getAllClosable()
 
 // testCommits()
 const cron = require('node-cron');

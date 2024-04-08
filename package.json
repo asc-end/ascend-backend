@@ -21,6 +21,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",
     "@octokit/core": "^6.0.1",
+    "@project-serum/borsh": "^0.2.5",
     "@solana/web3.js": "^1.91.4",
     "bip39": "^3.1.0",
     "cors": "^2.8.5",
