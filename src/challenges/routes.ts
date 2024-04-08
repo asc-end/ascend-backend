@@ -239,9 +239,9 @@ router.post("/accept", (req, res) => {
 
 router.post("/validate-day", (req, res) => {
     try {
-        const { challengeId, solanaId, author, address  } = req.body;
-        
-        let txSuccess = validate(solanaId, author, address)
+        const { challengeId, solanaid, author, address  } = req.body;
+        console.log(challengeId, solanaid, author, address)
+        let txSuccess = validate(solanaid, author, address)
         if(!txSuccess) return res.status(500)
         
         const query = `UPDATE challenges_players
