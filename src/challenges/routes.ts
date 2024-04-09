@@ -8,7 +8,6 @@ router.get("/", async (req, res) => {
     try {
 
         const { address } = req.query
-
         const query = `
             SELECT 
             c.id, 
@@ -183,6 +182,25 @@ router.get("/archived", (req, res) => {
         res.status(500).json({ error: `Internal server error ${err}` });
     }
 });
+
+router.get("/next-id", async (req, res) => {
+    try {
+        const { address } = req.query;
+        console.log("address", address)
+        const query = `SELECT MAX(solanaid) FROM challenges WHERE author = $1`;
+        client.query(query, [address], (err, result) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({ error: `Internal server error : ${err.message}` });
+                return;
+            }
+            res.status(200).json(result.rows);
+        });
+    } catch (err) {
+        console.error('Error updating challenge:', err);
+        res.status(500).json({ error: `Internal server error ${err}` });
+    } 
+})
 
 router.post("/new", (req, res) => {
     try {
