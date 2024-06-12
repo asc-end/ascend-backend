@@ -111,7 +111,8 @@ router.get("/feed", async (req, res) => {
         INNER JOIN challenges_players cp ON challenges.id = cp.main_id
         INNER JOIN users u ON u.address = cp.address
         WHERE 
-            friendships.status = 'friends'
+            friendships.status = 'friends' AND
+            begindate <= NOW()
         GROUP BY 
             challenges.id,
             event_date,
@@ -151,7 +152,8 @@ router.get("/feed", async (req, res) => {
         INNER JOIN challenges_players cp ON challenges.id = cp.main_id
         INNER JOIN users u ON u.address = cp.address
         WHERE 
-            friendships.status = 'friends'
+            friendships.status = 'friends' AND
+            (begindate + INTERVAL '1 day' * time) <= NOW()
         GROUP BY 
             challenges.id,
             event_date,
