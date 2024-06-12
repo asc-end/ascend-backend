@@ -92,12 +92,36 @@ router.get("/feed", async (req, res) => {
             type,
             stake,
             author,
-            challengedata
+            challengedata,
+            json_agg(
+                json_build_object(
+                    'id', cp.id, 
+                    'status', cp.status, 
+                    'nbdone', cp.nbdone, 
+                    'address', u.address, 
+                    'name', u.name, 
+                    'pfp_url', u.pfp_url, 
+                    'cover_picture_url', u.cover_picture_url, 
+                    'description', u.description
+                )
+            ) AS players
         FROM 
             challenges
         INNER JOIN friendships ON (friendships.user1 = challenges.author AND friendships.user2 = $2) OR (friendships.user1 = $2 AND friendships.user2 = challenges.author)
+        INNER JOIN challenges_players cp ON challenges.id = cp.main_id
+        INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends'
+        GROUP BY 
+            challenges.id,
+            event_date,
+            event_type,
+            solanaid,
+            time,
+            type,
+            stake,
+            author,
+            challengedata
         UNION ALL
         SELECT 
             challenges.id,
@@ -108,12 +132,36 @@ router.get("/feed", async (req, res) => {
             type,
             stake,
             author,
-            challengedata
+            challengedata,
+            json_agg(
+                json_build_object(
+                    'id', cp.id, 
+                    'status', cp.status, 
+                    'nbdone', cp.nbdone, 
+                    'address', u.address, 
+                    'name', u.name, 
+                    'pfp_url', u.pfp_url, 
+                    'cover_picture_url', u.cover_picture_url, 
+                    'description', u.description
+                )
+            ) AS players
         FROM 
             challenges
         INNER JOIN friendships ON (friendships.user1 = challenges.author AND friendships.user2 = $2) OR (friendships.user1 = $2 AND friendships.user2 = challenges.author)
+        INNER JOIN challenges_players cp ON challenges.id = cp.main_id
+        INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends'
+        GROUP BY 
+            challenges.id,
+            event_date,
+            event_type,
+            solanaid,
+            time,
+            type,
+            stake,
+            author,
+            challengedata
         ORDER BY 
             event_date DESC
         LIMIT $1
