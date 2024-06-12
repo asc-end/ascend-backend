@@ -76,54 +76,90 @@ router.get("/feed", async (req, res) => {
     try {
         const cursorParam = req.query.cursor; // Get cursor from query parameters
         const cursor = typeof cursorParam === 'string' ? parseInt(cursorParam) : 0; // Convert cursor to number, default to 0 if not provided or invalid
-        const limit = 10; // Set a limit for the number of challenges per page
+        const limit = 20; // Set a limit for the number of challenges per page
 
         const userAddress = req.query.address;
 
         console.log(cursor, userAddress)
         // Query to select challenges of friends
-
-        const query = `SELECT 
-                c.id, 
-                c.beginDate,
-                c.time,
-                c.type,
-                c.stake,
-                c.challengeData,
-                c.solanaid,
-                json_agg(
-                  json_build_object(
-                      'id', cp_all.id, 
-                      'status', cp_all.status, 
-                      'nbdone', cp_all.nbdone, 
-                      'address', u_all.address, 
-                      'name', u_all.name, 
-                      'pfp_url', u_all.pfp_url, 
-                      'cover_picture_url', u_all.cover_picture_url, 
-                      'description', u_all.description
-                  )) AS players
-            FROM 
-                (
-                SELECT distinct c.id
-                FROM 
-                    challenges c
-                JOIN 
-                    challenges_players cp ON c.id = cp.main_id
-                JOIN 
-                    users u ON u.address = cp.address
-                JOIN 
-                    friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user1 = u.address AND f.user2 = $1)
-                WHERE
-                    f.status = 'friends'
-                ) sub
-            JOIN challenges c ON c.id = sub.id
-            JOIN challenges_players cp_all ON c.id = cp_all.main_id
-            JOIN users u_all ON u_all.address = cp_all.address
-            GROUP BY 
-                c.id
-                LIMIT $2
+        const query = `
+        SELECT 
+            challenges.id,
+            begindate AS event_date,
+            'begin' AS event_type,
+            solanaid,
+            time,
+            type,
+            stake,
+            author,
+            challengedata
+        FROM 
+            challenges
+        INNER JOIN friendships ON (friendships.user1 = challenges.author AND friendships.user2 = $2) OR (friendships.user1 = $2 AND friendships.user2 = challenges.author)
+        WHERE 
+            friendships.status = 'friends'
+        UNION ALL
+        SELECT 
+            challenges.id,
+            begindate + INTERVAL '1 day' * time AS event_date,
+            'end' AS event_type,
+            solanaid,
+            time,
+            type,
+            stake,
+            author,
+            challengedata
+        FROM 
+            challenges
+        INNER JOIN friendships ON (friendships.user1 = challenges.author AND friendships.user2 = $2) OR (friendships.user1 = $2 AND friendships.user2 = challenges.author)
+        WHERE 
+            friendships.status = 'friends'
+        ORDER BY 
+            event_date DESC
+        LIMIT $1
         `
-        const challengesQuery = await client.query(query, [userAddress, limit]);
+
+        // const query = `SELECT 
+        //         c.id, 
+        //         c.beginDate,
+        //         c.time,
+        //         c.type,
+        //         c.stake,
+        //         c.challengeData,
+        //         c.solanaid,
+        //         json_agg(
+        //           json_build_object(
+        //               'id', cp_all.id, 
+        //               'status', cp_all.status, 
+        //               'nbdone', cp_all.nbdone, 
+        //               'address', u_all.address, 
+        //               'name', u_all.name, 
+        //               'pfp_url', u_all.pfp_url, 
+        //               'cover_picture_url', u_all.cover_picture_url, 
+        //               'description', u_all.description
+        //           )) AS players
+        //     FROM 
+        //         (
+        //         SELECT distinct c.id
+        //         FROM 
+        //             challenges c
+        //         JOIN 
+        //             challenges_players cp ON c.id = cp.main_id
+        //         JOIN 
+        //             users u ON u.address = cp.address
+        //         JOIN 
+        //             friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user1 = u.address AND f.user2 = $1)
+        //         WHERE
+        //             f.status = 'friends'
+        //         ) sub
+        //     JOIN challenges c ON c.id = sub.id
+        //     JOIN challenges_players cp_all ON c.id = cp_all.main_id
+        //     JOIN users u_all ON u_all.address = cp_all.address
+        //     GROUP BY 
+        //         c.id
+        //         LIMIT $2
+        // `
+        const challengesQuery = await client.query(query, [limit, userAddress]);
         const challenges = challengesQuery.rows;
 
         const usersPromises = challenges.map(async (challenge) => {
@@ -199,7 +235,7 @@ router.get("/next-id", async (req, res) => {
     } catch (err) {
         console.error('Error updating challenge:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
-    } 
+    }
 })
 
 router.post("/new", (req, res) => {
@@ -259,14 +295,14 @@ router.post("/accept", (req, res) => {
 
 router.post("/validate-day", async (req, res) => {
     try {
-        const { challengeId, solanaid, author, address  } = req.body;
+        const { challengeId, solanaid, author, address } = req.body;
         console.log(challengeId, solanaid, author, address)
         let txSuccess = await validate(solanaid, author, address)
-        if(!txSuccess)  {
+        if (!txSuccess) {
             console.log("TX ERROR")
-            return res.status(500).json({error: `Tx didnt land on solana`})
+            return res.status(500).json({ error: `Tx didnt land on solana` })
         }
-        
+
         const query = `UPDATE challenges_players
         SET 
             nbDone = nbDone + 1,
