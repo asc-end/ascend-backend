@@ -1,4 +1,4 @@
-import client from "../db";
+import client from "../../lib/db";
 import express, { Request, Response } from "express";
 
 const router = express.Router();

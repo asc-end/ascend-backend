@@ -1,11 +1,23 @@
 
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { connection, keypair, program } from "./test";
 import { getProgramDerivedAddress } from "./utils";
 import * as borsh from '@project-serum/borsh'
+import { connection, keypair, program } from "./config";
 
-export async function close(id: number, authorAddress: string) {
+export async function close(author: PublicKey, account: PublicKey) {
+    program.methods
+        .close(author)
+        .accounts({
+            withdrawKey: keypair.publicKey,
+            vault: account,
+            systemProgram: SystemProgram.programId
+        })
+        .signers([keypair])
+        .rpc()
+}
+
+export async function closePda(id: number, authorAddress: string) {
     try {
         let author = new PublicKey(authorAddress)
 
@@ -17,7 +29,7 @@ export async function close(id: number, authorAddress: string) {
             .signers([keypair])
             .rpc()
         return true
-    } catch (e){
+    } catch (e) {
         console.error(e)
         return false
     }
@@ -38,20 +50,24 @@ const borshAccount = borsh.struct([
     borsh.i64("started"),
     borsh.i64("state"),
 
-  ])
+])
 
-export async function getAllClosable(){
+export async function getAllClosable() {
     const accounts = await connection.getProgramAccounts(program.programId)
 
     let accountsToClose = accounts.map((account, i) => {
         const decoded = borshAccount.decode(account.account.data)
-        let state = decoded.state 
-        console.log(decoded)
-        console.log(decoded.counter)
-        if(decoded.state == 2)
-            return {id: decoded.id, author: decoded.players[0]}
+        let state = decoded.state
+        // console.log(decoded)
+        // console.log(decoded.counter)
+        if (decoded.state == 2)
+            return { id: decoded.id, author: decoded.players[0] }
         return null
     }).filter(e => e !== null)
 
-    accountsToClose.forEach((account) => close(account?.id, account?.author))
+    accountsToClose.forEach((account) => closePda(account?.id, account?.author))
+}
+
+export async function closeAllClosableAccounts() {
+    const vaults = program.account.vault.all()
 }

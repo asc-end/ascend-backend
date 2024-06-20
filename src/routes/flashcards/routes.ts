@@ -1,6 +1,6 @@
-import {data} from "./flashcards"
-import client from "../db";
-import express, { Request, Response } from "express";
+import {data} from "../../../flashcards"
+import client from "../../lib/db";
+import express from "express";
 
 const router = express.Router();
 export function importFromJson() {

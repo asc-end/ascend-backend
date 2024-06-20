@@ -1,23 +1,8 @@
 
-import {
-    Connection,
-    TransactionMessage,
-    VersionedTransaction,
-    Keypair,
-    LAMPORTS_PER_SOL,
-    PublicKey,
-    clusterApiUrl,
-    SystemProgram,
-    Transaction,
-} from "@solana/web3.js";
-import * as bip39 from "bip39";
-import { Vault } from "./vault";
-import * as idl from './solana'
-const IDL: Vault = require('./vault.json');
-import { Program, utils } from '@coral-xyz/anchor';
+import { PublicKey } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { connection, keypair, program } from "./test";
 import { getProgramDerivedAddress } from "./utils";
+import { keypair, program } from "./config";
 
 
 export async function validate(id: number, authorAddress: string, playerAddress: string) {
@@ -34,7 +19,7 @@ export async function validate(id: number, authorAddress: string, playerAddress:
             .signers([keypair])
             .rpc()
         return true
-    } catch (e){
+    } catch (e) {
         console.error(e)
         return false
     }
