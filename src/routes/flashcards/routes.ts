@@ -1,25 +1,17 @@
-import {data} from "../../../flashcards"
 import client from "../../lib/db";
 import express from "express";
 
 const router = express.Router();
-export function importFromJson() {
+export function importFromJson(data: {english: string, french: string, german: string, italian:string, portuguese: string, spanish: string}[]) {
     try{
-
         data.forEach((flashcard)=> {
             if(flashcard.french !== ""){
-                
                 const query = "INSERT INTO languagecards (english, french, german, italian, portuguese, spanish) SELECT $1, $2, $3, $4, $5, $6"
                 client.query(query, [flashcard.english, flashcard.french, flashcard.german, flashcard.italian, flashcard.portuguese, flashcard.spanish], (err, result) => {
                     if (err) {
                         console.error('Error inserting user:', err);
-                        // res.status(500).json({ error: 'Internal server error' });
                         return;
                     }
-        
-                    // const userId = result.rows[0].id;
-        
-
                 });   
             }
         })
