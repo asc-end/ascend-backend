@@ -354,22 +354,22 @@ router.post("/validate-day", async (req, res) => {
             return res.status(500).json({ error: `Tx didnt land on solana` })
         }
 
-        // const query = `UPDATE challenges_players
-        // SET 
-        //     nbDone = nbDone + 1,
-        //     status = CASE 
-        //         WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
-        //         ELSE status
-        //     END
-        // WHERE main_id = $1 AND address = $2`;
-        // client.query(query, [challengeId, address], (err, result) => {
-        //     if (err) {
-        //         console.error(err)
-        //         res.status(500).json({ error: `Internal server error : ${err.message}` });
-        //         return;
-        //     }
-        //     res.status(200).json({ message: 'Challenge incremented successfully.' });
-        // })
+        const query = `UPDATE challenges_players
+        SET 
+            nbDone = nbDone + 1,
+            status = CASE 
+                WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+                ELSE status
+            END
+        WHERE main_id = $1 AND address = $2`;
+        client.query(query, [challengeId, address], (err, result) => {
+            if (err) {
+                console.error(err)
+                res.status(500).json({ error: `Internal server error : ${err.message}` });
+                return;
+            }
+            res.status(200).json({ message: 'Challenge incremented successfully.' });
+        })
     } catch (err) {
         console.error('Error incrementing challenge:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
