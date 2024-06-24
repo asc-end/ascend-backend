@@ -10,7 +10,7 @@ router.get("/", (req, res) => {
                 console.error("Error fetching actual data:", err);
                 res.status(500).json({ ok: false, error: "Internal server error" });
             } else {
-                res.json(result.rows);
+                res.status(200).json(result.rows);
             }
         });
     else
@@ -19,7 +19,7 @@ router.get("/", (req, res) => {
                 console.error("Error fetching actual data:", err);
                 res.status(500).json({ ok: false, error: "Internal server error" });
             } else {
-                res.json(result.rows);
+                res.status(200).json(result.rows);
             }
         });
 })
@@ -49,7 +49,7 @@ router.get("/not-friends", (req, res) => {
                 console.error("Error fetching actual data:", err);
                 res.status(500).json({ ok: false, error: "Internal server error" });
             } else {
-                res.json(result.rows);
+                res.status(200).json(result.rows);
             }
         });
     }
@@ -59,36 +59,61 @@ router.get("/not-friends", (req, res) => {
 })
 
 
-router.get("/friends", (req, res) => {
+router.get("/pending", (req, res) => {
     const query = `
     SELECT
-    u.*,
-    CASE
-        WHEN f.user1 = $1 AND f.status = 'pending' AND f.user2 = u.address THEN 'request'
-        WHEN f.user2 = $1 AND f.status = 'pending' AND f.user1 = u.address THEN 'invite'
-        WHEN f.status = 'friends' THEN 'friends'
-        WHEN f.status IS NULL THEN 'unkown'
-        ELSE f.status
-    END AS status,
-    f.id AS friendship_id
-FROM
-    users u
-LEFT JOIN
-    friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
-WHERE
-    u.address != $1
-    AND f.status != 'unkown'
+        u.*,
+        CASE
+            WHEN f.user1 = $1 AND f.status = 'pending' AND f.user2 = u.address THEN 'request'
+            WHEN f.user2 = $1 AND f.status = 'pending' AND f.user1 = u.address THEN 'invite'
+            WHEN f.status = 'friends' THEN 'friends'
+            ELSE 'unknown'
+        END AS status,
+        f.id AS friendship_id
+    FROM
+        users u
+    LEFT JOIN
+        friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
+    WHERE
+        u.address != $1
+        AND (f.status NOT IN ('friends', 'unkown'));
+
     `
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
             res.status(500).json({ ok: false, error: "Internal server error" });
         } else {
-            res.json(result.rows);
+            res.status(200).json(result.rows);
         }
     });
 })
 
+
+router.get('/friends', (req, res) => {
+    const query = `    
+        SELECT
+            u.*,
+            f.id AS friendship_id,
+            f.status as friendship_status
+        FROM
+            users u
+        LEFT JOIN
+            friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user2 = $1 AND f.user1 = u.address)
+        WHERE
+            u.address != $1
+            AND f.status = 'friends'
+    ` 
+    client.query(query, [req.query.address], (err, result) => {
+        if (err) {
+            console.error("Error fetching actual data:", err);
+            res.status(500).json({ ok: false, error: "Internal server error" });
+        } else {
+            console.log(result)
+            res.status(200).json(result.rows);
+        }
+    });
+})
 router.delete("/:id", (req, res) => {
     const { id } = req.params;
     const query = "DELETE FROM friendships WHERE id = $1 RETURNING *";
@@ -99,7 +124,7 @@ router.delete("/:id", (req, res) => {
         } else if (result.rows.length === 0) {
             res.status(404).json({ error: 'Friendship not found' });
         } else {
-            res.json({ message: 'Friendship deleted successfully', deletedFriendship: result.rows[0] });
+            res.status(200).json({ message: 'Friendship deleted successfully', deletedFriendship: result.rows[0] });
         }
     });
 });
@@ -114,7 +139,7 @@ router.post("/accept", (req, res) => {
         } else if (result.rows.length === 0) {
             res.status(404).json({ error: 'Friendship not found' });
         } else {
-            res.json({ message: 'Friendship accepted successfully', updatedFriendship: result.rows[0] });
+            res.status(200).json({ message: 'Friendship accepted successfully', updatedFriendship: result.rows[0] });
         }
     });
 })
