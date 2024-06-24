@@ -5,8 +5,11 @@ import challengesRoutes from "./routes/challenges/routes"
 import githubRoutes from "./routes/integrations/github/routes"
 import flashcardsRoutes from "./routes/flashcards/routes"
 import farcasterRoutes from "./routes/integrations/farcaster/routes"
+import tableRoutes from "./routes/tables/routes"
+
 import client from "./lib/db";
 import { indexOnChainData } from "./indexer";
+import { createDeck } from "./lib/flaschards";
 const cron = require('node-cron');
 const cors = require("cors");
 
@@ -15,6 +18,13 @@ require('dotenv').config()
 const app = express();
 app.use(express.json())
 const allowedOrigins = ["http://localhost:3000", "http://localhost:19006", "https://u.expo.dev/ffc4f432-c8b6-4087-93b8-db25caadabaa", "*", "http://192.168.1.66.8081:19006", "https://exp+app://expo-development-client/?url=http%3A%2F%2F192.168.1.66%3A8081", "http://u33oacq-ascendmarie-8081.exp.direct"];
+
+// Function to execute query and handle error
+function executeQuery(query: string) {
+    client.query(query, (err, res) => {
+        if (err) throw err;
+    });
+}
 
 app.use(cors({
     origin: function (origin: any, callback: any) {
@@ -28,7 +38,7 @@ app.use(cors({
     }
 }));
 
-client.query(`
+executeQuery(`
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name TEXT,
@@ -36,12 +46,10 @@ CREATE TABLE IF NOT EXISTS users (
     pfp_url TEXT,
     cover_picture_url TEXT,
     description TEXT
-)
-`, (err, res) => {
-    if (err) throw err;
-});
+);
+`)
 
-client.query(`
+executeQuery(`
 CREATE TABLE IF NOT EXISTS levels (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
@@ -52,23 +60,19 @@ CREATE TABLE IF NOT EXISTS levels (
     code INTEGER,
     sport INTEGER
 );
-`, (err, res) => {
-    if (err) throw err;
-});
+`)
 
-client.query(`
+executeQuery(`
 CREATE TABLE IF NOT EXISTS friendships (
     id SERIAL PRIMARY KEY,
     user1 TEXT,
     user2 TEXT,
     status TEXT
 );
-`, (err, res) => {
-    if (err) throw err;
-});
+`);
 
 // add address
-client.query(`
+executeQuery(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
     created TIMESTAMP,
@@ -79,12 +83,9 @@ CREATE TABLE IF NOT EXISTS challenges (
     stake INTEGER,
     author TEXT,
     challengedata JSONB
-);
-`, (err, res) => {
-    if (err) throw err;
-});
+);`);
 
-client.query(`
+executeQuery(`
     CREATE TABLE IF NOT EXISTS challenges_players (
         id SERIAL PRIMARY KEY,
         main_id INTEGER REFERENCES challenges(id),
@@ -92,41 +93,49 @@ client.query(`
         address TEXT,
         nbDone INTEGER
     )
-    `, (err, res) => {
-    if (err) throw err;
-});
+    `);
 
-client.query(`
-CREATE TABLE IF NOT EXISTS languagecards (
-    id SERIAL PRIMARY KEY,
-    english TEXT,
-    french TEXT,
-    german TEXT,
-    italian TEXT,
-    portuguese TEXT,
-    spanish TEXT
-);
-`, (err, res) => {
-    if (err) throw err;
-});
+export const cardsSchema = [
+    `
+        CREATE TABLE IF NOT EXISTS decks (
+            id SERIAL PRIMARY KEY,
+            name TEXT,
+            tags JSONB,
+            columns JSONB
+        )
+        `,
+    `
+        CREATE TABLE IF NOT EXISTS cards (
+            id SERIAL PRIMARY KEY,
+            deck_id SERIAL REFERENCES decks(id) ON DELETE SET NULL 
+        )
+        `,
+    `
+        CREATE TABLE IF NOT EXISTS users_cards(
+            id SERIAL PRIMARY KEY,
+            card_id INTEGER REFERENCES cards(id) ON DELETE SET NULL,
+            user_id SERIAL REFERENCES users(id) ON DELETE SET NULL,
+            level INTEGER NOT NULL DEFAULT 0,
+            last_updated TIMESTAMP
+        )
+        `,
+    // `ALTER TABLE users_cards ADD CONSTRAINT uc_user_card UNIQUE (user_id, card_id);`
+];
 
-client.query(`
-CREATE TABLE IF NOT EXISTS farcaster_profiles (
-    id SERIAL PRIMARY KEY,
-    fid INTEGER,
-    user_address TEXT REFERENCES users(address) ON DELETE SET NULL,
-    UNIQUE(fid, user_address)
-);
-`, (err, res) => {
-    if (err) throw err;
-});
+cardsSchema.forEach((schema) => executeQuery(schema))
 
-// client.query(`
-// DROP TABLE IF EXISTS farcaster_profiles;
-// `, (err, res) => {
-//     if (err) throw err;
-//     console.log("Table 'farcaster_profiles' has been deleted.");
-// });
+function executeQueryWithParams(query: string, params: any[]) {
+    client.query(query, params, (err, res) => {
+        if (err) throw err;
+    });
+}
+
+// const query = `
+//     DROP TABLE IF EXISTS users_cards
+// `;
+// executeQuery(query)
+
+// executeQueryWithParams(query, [JSON.stringify({"deckId": 2, from: "country", to: "capital"}), 14])
 
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
@@ -134,11 +143,13 @@ app.use('/challenges', challengesRoutes);
 app.use('/flashcards', flashcardsRoutes);
 app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
+app.use("/tables", tableRoutes)
 
-
-cron.schedule('*/15 * * * *', async() => {
+cron.schedule('*/15 * * * *', async () => {
     indexOnChainData()
 });
+
+// createDeck("language", ["language"], data)
 
 // Start server
 const PORT = process.env.PORT || 3002;
