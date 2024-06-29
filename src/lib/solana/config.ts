@@ -12,4 +12,4 @@ export const keypair = Keypair.fromSeed(seed.slice(0, 32))
 
 const wallet = new NodeWallet(keypair);
 const provider = new AnchorProvider(connection, wallet, {})
-export const program = new Program<Vault>(IDL as unknown as Vault, programID, provider);
+export const program = new Program<Vault>(IDL as unknown as Vault, programID, provider)

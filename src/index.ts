@@ -10,6 +10,7 @@ import tableRoutes from "./routes/tables/routes"
 import client from "./lib/db";
 import { indexOnChainData } from "./indexer";
 import { createDeck } from "./lib/flaschards";
+import { scrapeGithub } from "./lib/integrations/integrations";
 const cron = require('node-cron');
 const cors = require("cors");
 
@@ -145,10 +146,11 @@ app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
 app.use("/tables", tableRoutes)
 
-cron.schedule('*/15 * * * *', async () => {
+cron.schedule('*/2 * * * *', async () => {
     indexOnChainData()
 });
 
+// scrapeGithub(`https://raw.githubusercontent.com/asc-end/ascend-backend/commits/main/`)
 // createDeck("language", ["language"], data)
 
 // Start server
