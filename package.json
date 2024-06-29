@@ -24,6 +24,7 @@
     "@coral-xyz/anchor": "^0.29.0",
     "@farcaster/auth-client": "^0.1.1",
     "@neynar/nodejs-sdk": "^1.29.0",
+    "@octokit/auth-oauth-user": "^5.1.1",
     "@octokit/core": "^6.0.1",
     "@project-serum/borsh": "^0.2.5",
     "@solana/web3.js": "^1.91.4",
