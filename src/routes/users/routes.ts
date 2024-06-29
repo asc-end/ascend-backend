@@ -81,6 +81,7 @@ router.post('/new-user', async (req, res) => {
     try {
         const { address } = req.body;
 
+        console.log("NEW user", address)
         const query = "INSERT INTO users (address) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM users WHERE address = $1) RETURNING id"
         client.query(query, [address], (err, result) => {
             if (err) {

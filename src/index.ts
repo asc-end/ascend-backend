@@ -18,7 +18,7 @@ require('dotenv').config()
 
 const app = express();
 app.use(express.json())
-const allowedOrigins = ["http://localhost:3000", "http://localhost:19006", "https://u.expo.dev/ffc4f432-c8b6-4087-93b8-db25caadabaa", "*", "http://192.168.1.66.8081:19006", "https://exp+app://expo-development-client/?url=http%3A%2F%2F192.168.1.66%3A8081", "http://u33oacq-ascendmarie-8081.exp.direct"];
+const allowedOrigins = ["http://localhost:3000", "http://localhost:19006", "https://u.expo.dev/ffc4f432-c8b6-4087-93b8-db25caadabaa",  "https://u.expo.dev/update/76d0f7b2-e7c8-451b-b6ba-25e1ab456d6f", "*", "http://192.168.1.66.8081:19006", "https://exp+app://expo-development-client/?url=http%3A%2F%2F192.168.1.66%3A8081", "http://u33oacq-ascendmarie-8081.exp.direct"];
 
 // Function to execute query and handle error
 function executeQuery(query: string) {
@@ -146,7 +146,7 @@ app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
 app.use("/tables", tableRoutes)
 
-cron.schedule('*/2 * * * *', async () => {
+cron.schedule('*/10 * * * *', async () => {
     indexOnChainData()
 });
 
