@@ -29,13 +29,13 @@ function executeQuery(query: string) {
 
 app.use(cors({
     origin: function (origin: any, callback: any) {
-        if (!origin) return callback(null, false);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            var msg = 'The CORS policy for this site does not ' +
-                'allow access from the specified Origin.';
-            return callback(new Error(msg), false);
-        }
-        return callback(null, true);
+        if (!origin) return callback(null, true);
+        // if (allowedOrigins.indexOf(origin) === -1) {
+        //     var msg = 'The CORS policy for this site does not ' +
+        //         'allow access from the specified Origin.';
+        //     return callback(new Error(msg), false);
+        // }
+        // return callback(null, true);
     }
 }));
 
