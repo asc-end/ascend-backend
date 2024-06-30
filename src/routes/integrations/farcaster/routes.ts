@@ -59,7 +59,7 @@ router.get("/user", async (req, res) => {
         const address = req.query.address
         if (!address) return res.status(400).json({ error: "Please provide an address." })
 
-        const query = "SELECT * FROM farcaster_profiles WHERE user_address = $1";
+        const query = "SELECT * FROM app_profiles WHERE user_address = $1 AND app = 'Farcaster'";
 
         client.query(query, [address,], async (err, result) => {
             if (err) {

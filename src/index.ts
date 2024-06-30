@@ -5,6 +5,8 @@ import challengesRoutes from "./routes/challenges/routes"
 import githubRoutes from "./routes/integrations/github/routes"
 import flashcardsRoutes from "./routes/flashcards/routes"
 import farcasterRoutes from "./routes/integrations/farcaster/routes"
+import twitterRoutes from "./routes/integrations/twitter/routes"
+import integrationsRoutes from "./routes/integrations/routes"
 import tableRoutes from "./routes/tables/routes"
 
 import client from "./lib/db";
@@ -157,8 +159,10 @@ app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
 app.use('/challenges', challengesRoutes);
 app.use('/flashcards', flashcardsRoutes);
+app.use('/integrations', integrationsRoutes);
 app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
+app.use('/integrations/farcaster', twitterRoutes);
 app.use("/tables", tableRoutes)
 
 cron.schedule('*/10 * * * *', async () => {
