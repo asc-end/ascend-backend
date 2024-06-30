@@ -113,7 +113,11 @@ router.get("/feed", async (req, res) => {
         INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends' AND
-            begindate <= NOW()
+            begindate <= NOW() AND
+            NOT EXISTS (
+                SELECT 1 FROM challenges_players 
+                WHERE main_id = challenges.id AND status = 'pending'
+            )
         GROUP BY 
             challenges.id,
             event_date,
@@ -154,7 +158,11 @@ router.get("/feed", async (req, res) => {
         INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends' AND
-            (begindate + INTERVAL '1 day' * time) <= NOW()
+            (begindate + INTERVAL '1 day' * time) <= NOW() AND
+            NOT EXISTS (
+                SELECT 1 FROM challenges_players 
+                WHERE main_id = challenges.id AND status = 'pending'
+            )
         GROUP BY 
             challenges.id,
             event_date,
@@ -169,47 +177,6 @@ router.get("/feed", async (req, res) => {
             event_date DESC
         LIMIT $1
         `
-
-        // const query = `SELECT 
-        //         c.id, 
-        //         c.beginDate,
-        //         c.time,
-        //         c.type,
-        //         c.stake,
-        //         c.challengeData,
-        //         c.solanaid,
-        //         json_agg(
-        //           json_build_object(
-        //               'id', cp_all.id, 
-        //               'status', cp_all.status, 
-        //               'nbdone', cp_all.nbdone, 
-        //               'address', u_all.address, 
-        //               'name', u_all.name, 
-        //               'pfp_url', u_all.pfp_url, 
-        //               'cover_picture_url', u_all.cover_picture_url, 
-        //               'description', u_all.description
-        //           )) AS players
-        //     FROM 
-        //         (
-        //         SELECT distinct c.id
-        //         FROM 
-        //             challenges c
-        //         JOIN 
-        //             challenges_players cp ON c.id = cp.main_id
-        //         JOIN 
-        //             users u ON u.address = cp.address
-        //         JOIN 
-        //             friendships f ON (f.user1 = $1 AND f.user2 = u.address) OR (f.user1 = u.address AND f.user2 = $1)
-        //         WHERE
-        //             f.status = 'friends'
-        //         ) sub
-        //     JOIN challenges c ON c.id = sub.id
-        //     JOIN challenges_players cp_all ON c.id = cp_all.main_id
-        //     JOIN users u_all ON u_all.address = cp_all.address
-        //     GROUP BY 
-        //         c.id
-        //         LIMIT $2
-        // `
         const challengesQuery = await client.query(query, [limit, userAddress]);
         const challenges = challengesQuery.rows;
 
@@ -293,7 +260,6 @@ router.post("/new", (req, res) => {
     try {
         const { begindate, type, stake, time, players, challengedata, solanaid } = req.body;
 
-        console.log(begindate, type, stake, time, players, challengedata, solanaid)
         const jsondata = JSON.stringify(challengedata)
         const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
         client.query(challengeQuery, [begindate, type, stake, time, players[0], jsondata, solanaid], (err, result) => {
@@ -302,10 +268,10 @@ router.post("/new", (req, res) => {
                 res.status(500).send('Error while creating challenge');
             } else {
                 const challengeId = result.rows[0].id;
-                const playerChallengeQuery = "INSERT INTO challenges_players (main_id, status, address, nbDone) VALUES ($1, $2, $3, $4)";
+                const playerChallengeQuery = "INSERT INTO challenges_players (main_id, status, address, nbDone, user, target) VALUES ($1, $2, $3, $4, $5, $6)";
 
                 players.forEach((player: string, i: number) => {
-                    const playerData = [challengeId, i === 0 ? "during" : "pending", player, 0]; // Update this line based on actual user data structure
+                    const playerData = [challengeId, i === 0 ? "during" : "pending", player, 0, i === 0 && challengedata.user, i === 0 && challengedata.target];
 
                     client.query(playerChallengeQuery, playerData, (err, result) => {
                         if (err) {
@@ -327,10 +293,10 @@ router.post("/new", (req, res) => {
 router.post("/accept", (req, res) => {
     try {
 
-        const { challengeId, address } = req.body;
+        const { challengeId, address, user, target } = req.body;
 
-        const query = "UPDATE challenges_players SET status = 'during' WHERE main_id = $1 AND address = $2";
-        client.query(query, [challengeId, address], (err, result) => {
+        const query = "UPDATE challenges_players SET status = 'during', user = $3, target = $4 WHERE main_id = $1 AND address = $2";
+        client.query(query, [challengeId, address, user, target], (err, result) => {
             if (err) {
                 console.error(err)
                 res.status(500).json({ error: `Internal server error : ${err.message}` });
