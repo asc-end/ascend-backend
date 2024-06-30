@@ -37,7 +37,7 @@ router.post("/create", async (req, res) => {
             }
 
             // If profile doesn't exist, insert new profile
-            const insertQuery = "INSERT INTO farcaster_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Farcaster') RETURNING fid";
+            const insertQuery = "INSERT INTO app_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Farcaster') RETURNING fid";
             client.query(insertQuery, [address, resp.fid, username], (err, result) => {
                 if (err) {
                     console.error(err)
