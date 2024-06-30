@@ -13,22 +13,18 @@ import client from "../../../lib/db";
 const router = express.Router();
 
 router.get("/repo", (req, res) => {
-    const { token } = req.query
-
-    console.log("getting repo")
+    let { token, page } = req.query
     const octokit = new Octokit({
         auth: token,
     });
+    if (!page) page = "1"
 
-    const result = octokit.request('GET /user/repos?per_page=100', {
+    const result = octokit.request(`GET /user/repos?per_page=100&page${page}`, {
         headers: {
             'X-GitHub-Api-Version': '2022-11-28'
         }
-    }).then((result) => {
-        console.log(result)
-
-        res.status(200).json(result)
-    }).catch(e => res.status(500).json({ error: e }))
+    }).then((result) => { res.status(200).json(result)})
+    .catch(e => res.status(500).json({ error: e }))
 })
 
 router.post("/create", async (req, res) => {
@@ -68,15 +64,15 @@ router.post("/create", async (req, res) => {
 })
 
 router.post("/webhook", async (req, res) => {
-    try{
+    try {
         const { token, owner, repo } = req.body
-    
+
         console.log(token, owner, repo)
         if (!owner || !repo) return
         const octokit = new Octokit({
             auth: token,
         });
-    
+
         const resp = await octokit.request('POST /repos/{owner}/{repo}/hooks', {
             owner: owner.toString(),
             repo: repo.toString(),
@@ -95,8 +91,8 @@ router.post("/webhook", async (req, res) => {
         console.log(resp)
         res.status(200).json(resp)
 
-    } catch(e){
-         res.status(500).json({ error: e })
+    } catch (e) {
+        res.status(500).json({ error: e })
     }
 })
 
