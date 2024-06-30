@@ -20,7 +20,7 @@ router.get("/repo", (req, res) => {
         auth: token,
     });
 
-    const result = octokit.request('GET /user/repos', {
+    const result = octokit.request('GET /user/repos?per_page=100', {
         headers: {
             'X-GitHub-Api-Version': '2022-11-28'
         }
