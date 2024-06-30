@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import { Octokit } from "octokit";
 
-let createOAuthUserAuth:any;
+let createOAuthUserAuth: any;
 
 import("@octokit/auth-oauth-user").then((module) => {
     createOAuthUserAuth = module.createOAuthUserAuth;
@@ -65,6 +65,31 @@ router.post("/create", async (req, res) => {
         console.error('Error creating user:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
     }
+})
+
+router.post("/webhook", async (req, res) => {
+    const { token, owner, repo } = req.query
+
+    if (!owner || !repo) return
+    const octokit = new Octokit({
+        auth: token,
+    });
+
+    await octokit.request('POST /repos/{owner}/{repo}/hooks', {
+        owner: owner.toString(),
+        repo: repo.toString(),
+        name: 'web',
+        active: true,
+        events: ['push'],
+        config: {
+            url: "https://ascend-backend-production.up.railway.app/integrations/github/webhook/commit",
+            content_type: 'json',
+            insecure_ssl: '0'
+        },
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    })
 })
 
 router.get("/revoke", (req, res) => {
@@ -152,5 +177,17 @@ router.get('/commit', (req, res) => {
         res.status(200).json(commitToday)
     })
 })
+
+
+router.get("/webhook/commit", (req, res) => {
+    console.log("GITHUB WEBOOK GET")
+    console.log(req)
+})
+
+router.post("/webhook/commit", (req, res) => {
+    console.log("GITHUB WEBOOK POST")
+    console.log(req)
+})
+
 
 export default router 
