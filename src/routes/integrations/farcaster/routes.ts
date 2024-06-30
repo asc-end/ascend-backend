@@ -6,18 +6,14 @@ import neynarClient from "../../../lib/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 const router = express.Router();
 
-const appClient = createAppClient({
+export const appClient = createAppClient({
     relay: 'https://relay.farcaster.xyz',
     ethereum: viemConnector(),
 });
 
-router.get("/test", (req, res) => {
-    res.status(200).json({ message: "Good test" })
-})
-
-router.post("/link", async (req, res) => {
+router.post("/create", async (req, res) => {
     try {
-        const { domain, message, nonce, signature, address } = req.body;
+        const { domain, message, nonce, signature, address, username } = req.body;
 
         const resp = await appClient.verifySignInMessage({ domain, message, nonce, signature })
         // const { challengeId, address } = req.body;
@@ -26,7 +22,7 @@ router.post("/link", async (req, res) => {
             return res.status(400).json({ error: "Invalid signature." })
 
         // Check if profile already exists
-        const checkQuery = "SELECT * FROM farcaster_profiles WHERE user_address = $1";
+        const checkQuery = "SELECT * FROM app_profiles WHERE address = $1 AND app = 'Farcaster'";
         client.query(checkQuery, [address], (err, result) => {
             if (err) {
                 console.error(err)
@@ -41,8 +37,8 @@ router.post("/link", async (req, res) => {
             }
 
             // If profile doesn't exist, insert new profile
-            const insertQuery = "INSERT INTO farcaster_profiles (user_address, fid) VALUES ($1, $2) RETURNING fid";
-            client.query(insertQuery, [address, resp.fid], (err, result) => {
+            const insertQuery = "INSERT INTO farcaster_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Farcaster') RETURNING fid";
+            client.query(insertQuery, [address, resp.fid, username], (err, result) => {
                 if (err) {
                     console.error(err)
                     res.status(500).json({ error: `Internal server error : ${err.message}` });

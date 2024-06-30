@@ -9,6 +9,7 @@ import("@octokit/auth-oauth-user").then((module) => {
 
 import axios from "axios";
 import jwt from "jsonwebtoken"
+import client from "../../../lib/db";
 const router = express.Router();
 
 router.get("/repo", (req, res) => {
@@ -28,6 +29,42 @@ router.get("/repo", (req, res) => {
 
         res.status(200).json(result)
     }).catch(e => res.status(500).json({ error: e }))
+})
+
+router.post("/create", async (req, res) => {
+    try {
+        const { address, username, id } = req.body;
+
+        // Check if profile already exists
+        const checkQuery = "SELECT * FROM app_profiles WHERE address = $1 AND app = 'Github'";
+        client.query(checkQuery, [address], (err, result) => {
+            if (err) {
+                console.error(err)
+                res.status(500).json({ error: `Internal server error : ${err.message}` });
+                return;
+            }
+
+            // If profile exists, return the id
+            if (result.rows.length > 0) {
+                res.status(200).json({ message: 'Github profile already exists.', fid: result.rows[0].fid });
+                return;
+            }
+
+            // If profile doesn't exist, insert new profile
+            const insertQuery = "INSERT INTO farcaster_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Github') RETURNING fid";
+            client.query(insertQuery, [address, id, username], (err, result) => {
+                if (err) {
+                    console.error(err)
+                    res.status(500).json({ error: `Internal server error : ${err.message}` });
+                    return;
+                }
+                res.status(200).json({ message: 'Github linked successfully.', fid: result.rows[0].fid });
+            })
+        })
+    } catch (err) {
+        console.error('Error creating user:', err);
+        res.status(500).json({ error: `Internal server error ${err}` });
+    }
 })
 
 router.get("/revoke", (req, res) => {
