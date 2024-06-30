@@ -68,28 +68,35 @@ router.post("/create", async (req, res) => {
 })
 
 router.post("/webhook", async (req, res) => {
-    const { token, owner, repo } = req.query
+    try{
+        const { token, owner, repo } = req.query
+    
+        if (!owner || !repo) return
+        const octokit = new Octokit({
+            auth: token,
+        });
+    
+        const resp = await octokit.request('POST /repos/{owner}/{repo}/hooks', {
+            owner: owner.toString(),
+            repo: repo.toString(),
+            name: 'web',
+            active: true,
+            events: ['push'],
+            config: {
+                url: "https://ascend-backend-production.up.railway.app/integrations/github/webhook/commit",
+                content_type: 'json',
+                insecure_ssl: '0'
+            },
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        })
+        console.log(resp)
+        res.status(200).json(resp)
 
-    if (!owner || !repo) return
-    const octokit = new Octokit({
-        auth: token,
-    });
-
-    await octokit.request('POST /repos/{owner}/{repo}/hooks', {
-        owner: owner.toString(),
-        repo: repo.toString(),
-        name: 'web',
-        active: true,
-        events: ['push'],
-        config: {
-            url: "https://ascend-backend-production.up.railway.app/integrations/github/webhook/commit",
-            content_type: 'json',
-            insecure_ssl: '0'
-        },
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
+    } catch(e){
+         res.status(500).json({ error: e })
+    }
 })
 
 router.get("/revoke", (req, res) => {
