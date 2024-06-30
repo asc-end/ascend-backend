@@ -113,11 +113,7 @@ router.get("/feed", async (req, res) => {
         INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends' AND
-            begindate <= NOW() AND
-            NOT EXISTS (
-                SELECT 1 FROM challenges_players 
-                WHERE main_id = challenges.id AND status = 'pending'
-            )
+            begindate <= NOW()
         GROUP BY 
             challenges.id,
             event_date,
