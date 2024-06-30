@@ -37,14 +37,14 @@ router.post("/create", async (req, res) => {
             }
 
             // If profile doesn't exist, insert new profile
-            const insertQuery = "INSERT INTO app_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Farcaster') RETURNING fid";
+            const insertQuery = "INSERT INTO app_profiles (address, app_id, username, app) VALUES ($1, $2, $3, 'Farcaster') RETURNING app_id";
             client.query(insertQuery, [address, resp.fid, username], (err, result) => {
                 if (err) {
                     console.error(err)
                     res.status(500).json({ error: `Internal server error : ${err.message}` });
                     return;
                 }
-                res.status(200).json({ message: 'Farcaster linked successfully.', fid: result.rows[0].fid });
+                res.status(200).json({ message: 'Farcaster linked successfully.', appId: result.rows[0].app_id });
             })
         })
     } catch (err) {
