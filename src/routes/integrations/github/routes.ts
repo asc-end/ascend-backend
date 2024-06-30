@@ -69,8 +69,9 @@ router.post("/create", async (req, res) => {
 
 router.post("/webhook", async (req, res) => {
     try{
-        const { token, owner, repo } = req.query
+        const { token, owner, repo } = req.body
     
+        console.log(token, owner, repo)
         if (!owner || !repo) return
         const octokit = new Octokit({
             auth: token,
