@@ -123,19 +123,19 @@ export const cardsSchema = [
     // `ALTER TABLE users_cards ADD CONSTRAINT uc_user_card UNIQUE (user_id, card_id);`
 ];
 
-// const thirdPartyProfiles = `
-//     CREATE TABLE IF NOT EXISTS app_profiles (
-//         id SERIAL PRIMARY KEY,
-//         app_id SERIAL,
-//         address TEXT REFERENCES users(address) ON DELETE SET NULL,
-//         username TEXT,
-//         app TEXT   
-//     )
-// `
-
 const thirdPartyProfiles = `
-    DROP TABLE IF EXISTS app_profiles
+    CREATE TABLE IF NOT EXISTS app_profiles (
+        id SERIAL PRIMARY KEY,
+        app_id SERIAL,
+        address TEXT REFERENCES users(address) ON DELETE SET NULL,
+        username TEXT,
+        app TEXT   
+    )
 `
+
+// const thirdPartyProfiles = `
+//     DROP TABLE IF EXISTS app_profiles
+// `
 executeQuery(thirdPartyProfiles)
 
 cardsSchema.forEach((schema) => executeQuery(schema))
