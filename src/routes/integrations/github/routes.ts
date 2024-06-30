@@ -186,11 +186,13 @@ router.get('/commit', (req, res) => {
 router.get("/webhook/commit", (req, res) => {
     console.log("GITHUB WEBOOK GET")
     console.log(req)
+    res.status(200).json({message: "All good"})
 })
 
 router.post("/webhook/commit", (req, res) => {
     console.log("GITHUB WEBOOK POST")
     console.log(req)
+    res.status(200).json({message: "All good"})
 })
 
 
