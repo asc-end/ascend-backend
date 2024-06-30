@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.get("/user", async (req, res) => {
     try {
-        const {address, app} = req.query
+        const {address} = req.query
         if (!address) return res.status(400).json({ error: "Please provide an address." })
 
-        const query = `SELECT * FROM app_profiles WHERE user_address = $1 AND app = ${app}`;
+        const query = `SELECT * FROM app_profiles WHERE user_address = $1`;
 
         client.query(query, [address,], async (err, result) => {
             if (err) {
