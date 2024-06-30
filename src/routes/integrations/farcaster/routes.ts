@@ -59,16 +59,12 @@ router.get("/user", async (req, res) => {
         const address = req.query.address
         if (!address) return res.status(400).json({ error: "Please provide an address." })
 
-        const query = "SELECT * FROM app_profiles WHERE user_address = $1 AND app = 'Farcaster'";
+        const query = "SELECT * FROM app_profiles WHERE address = $1 AND app = 'Farcaster'";
 
         client.query(query, [address,], async (err, result) => {
-            if (err) {
-                throw Error("no linked farcaster")
-            }
-
-            if(result.rows.length == 0)
-                return res.status(200).json({users: []})
-            const users:User[] = (await neynarClient.fetchBulkUsers(result.rows.map(r => r.fid))).users
+            if (err) throw Error("no linked farcaster")
+            if(result.rows.length == 0) return res.status(200).json({users: []})
+            const users:User[] = (await neynarClient.fetchBulkUsers(result.rows.map(r => r.id)).catch(e => {throw Error(e)})).users
             res.status(200).json({ users: users });
         })
     } catch (err) {
