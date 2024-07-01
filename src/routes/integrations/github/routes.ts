@@ -205,6 +205,29 @@ router.get('/installations', async (req, res) => {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         })
+
+        res.status(200).json(resp)
+    } catch(e){
+        res.status(500).json(e)
+    }
+})
+
+router.get('/repositories', async (req, res) => {
+    try{
+
+        const { token } = req.query
+
+        console.log(token)
+        const octokit = new Octokit({
+            auth: token
+        })
+        
+        const resp = await octokit.request('GET /installation/repositories', {
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        })
+        
         res.status(200).json(resp)
     } catch(e){
         res.status(500).json(e)
