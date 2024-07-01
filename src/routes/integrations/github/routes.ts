@@ -10,6 +10,7 @@ import("@octokit/auth-oauth-user").then((module) => {
 import axios from "axios";
 import jwt from "jsonwebtoken"
 import client from "../../../lib/db";
+import { setDayDone } from "../../../lib/challenges";
 const router = express.Router();
 
 router.get("/repo", (req, res) => {
@@ -23,8 +24,8 @@ router.get("/repo", (req, res) => {
         headers: {
             'X-GitHub-Api-Version': '2022-11-28'
         }
-    }).then((result) => { res.status(200).json(result)})
-    .catch(e => res.status(500).json({ error: e }))
+    }).then((result) => { res.status(200).json(result) })
+        .catch(e => res.status(500).json({ error: e }))
 })
 
 router.post("/create", async (req, res) => {
@@ -186,13 +187,58 @@ router.get('/commit', (req, res) => {
 router.get("/webhook/commit", (req, res) => {
     console.log("GITHUB WEBOOK GET")
     console.log(req)
-    res.status(200).json({message: "All good"})
+    res.status(200).json({ message: "All good" })
+})
+
+router.get('/installations', async (req, res) => {
+    try{
+
+        const { token } = req.query
+        // https://github.com/octokit/core.js#readme
+        const octokit = new Octokit({
+            auth: token
+        })
+        
+        await octokit.request('GET /user/installations', {
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28'
+            }
+        }).then((r) => {
+            res.status(200).json(r)
+            
+        })
+    } catch(e){
+        res.status(500).json(e)
+    }
 })
 
 router.post("/webhook/commit", (req, res) => {
-    console.log("GITHUB WEBOOK POST")
-    console.log(req)
-    res.status(200).json({message: "All good"})
+    try {
+
+        console.log("GITHUB WEBOOK POST")
+        console.log(req)
+
+        // Extract necessary data from the request
+        const username = req.body.pusher.name;
+        const repoId = req.body.repository.id;
+
+        const query =
+            `UPDATE challenges_players
+        SET 
+        nbDone = nbDone + 1,
+        status = CASE 
+        WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+        ELSE status
+            END
+            WHERE target = $1 AND user = $2 AND status = pending`;
+
+        client.query(query, [repoId, username], (err, result) => {
+
+        })
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({ error: e })
+    }
 })
 
 
