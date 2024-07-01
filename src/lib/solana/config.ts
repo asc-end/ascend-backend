@@ -4,7 +4,7 @@ import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { IDL, Vault } from "./idl/vault";
 import * as bip39 from "bip39";
 
-export const connection = new Connection(clusterApiUrl("devnet"), "confirmed")
+export const connection = new Connection(process.env.RPC_URL!!, "confirmed")
 const programID = new PublicKey("61YKY1VZHnorxWB5dtmKbWHDwMvnoDJnh9PkoBmeLKDK")
 
 const seed = bip39.mnemonicToSeedSync(process.env.MNEMONIC!, ""); // (mnemonic, password)
