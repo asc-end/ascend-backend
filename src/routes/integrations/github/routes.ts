@@ -194,19 +194,18 @@ router.get('/installations', async (req, res) => {
     try{
 
         const { token } = req.query
-        // https://github.com/octokit/core.js#readme
+
+        console.log(token)
         const octokit = new Octokit({
             auth: token
         })
         
-        await octokit.request('GET /user/installations', {
+        const resp = await octokit.request('GET /user/installations', {
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
-        }).then((r) => {
-            res.status(200).json(r)
-            
         })
+        res.status(200).json(resp)
     } catch(e){
         res.status(500).json(e)
     }
