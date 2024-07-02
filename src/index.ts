@@ -31,6 +31,7 @@ function executeQuery(query: string) {
 
 app.use(cors({
     origin: function (origin: any, callback: any) {
+        console.log(origin)
         if (!origin) return callback(null, true);
         // if (allowedOrigins.indexOf(origin) === -1) {
         //     var msg = 'The CORS policy for this site does not ' +
