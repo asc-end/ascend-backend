@@ -15,24 +15,29 @@ import { getInstallation } from "../../../lib/integrations/github";
 const router = express.Router();
 
 router.get("/repo", async (req, res) => {
-    let { token, page } = req.query
-    if (!token) return
+    try {
+        let { token, page } = req.query
+        if (!token) return
 
-    const octokit = new Octokit({
-        auth: token,
-    });
-    if (!page) page = "1"
+        const octokit = new Octokit({
+            auth: token,
+        });
+        if (!page) page = "1"
 
-    const installation = await getInstallation(token?.toString())
-    if (!installation) return
-    const result = octokit.request(`GET /installations/{installation_id}/repositories`, {
-        headers: {
-            "installation_id": installation[0].id,
-            'X-GitHub-Api-Version': '2022-11-28',
-            'Authorization': `token ${token}`,
-        }
-    }).then((result) => { res.status(200).json(result) })
-        .catch(e => res.status(500).json({ error: e }))
+        const installation = await getInstallation(token?.toString())
+        if (!installation) return
+        console.log(installation[0].id)
+        const result = await octokit.request(`GET /user/installations/{installation_id}/repositories`, {
+            installation_id: installation[0].id,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+            }
+        })
+        console.log(result)
+        return res.status(200).json(result)
+    } catch (e) {
+        return res.status(500).json({ error: e })
+    }
 })
 
 router.post("/create", async (req, res) => {
