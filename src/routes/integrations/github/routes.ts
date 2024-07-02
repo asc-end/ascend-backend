@@ -11,18 +11,24 @@ import axios from "axios";
 import jwt from "jsonwebtoken"
 import client from "../../../lib/db";
 import { setDayDone } from "../../../lib/challenges";
+import { getInstallation } from "../../../lib/integrations/github";
 const router = express.Router();
 
-router.get("/repo", (req, res) => {
+router.get("/repo", async (req, res) => {
     let { token, page } = req.query
+    if (!token) return
+
     const octokit = new Octokit({
         auth: token,
     });
     if (!page) page = "1"
 
-    const result = octokit.request(`GET /user/repos?per_page=100&page${page}`, {
+    const installation = await getInstallation(token?.toString())
+    if (!installation) return
+    const result = octokit.request(`GET /installations/${installation[0].id}/repositories?per_page=100&page${page}`, {
         headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Authorization': `token ${token}`,
         }
     }).then((result) => { res.status(200).json(result) })
         .catch(e => res.status(500).json({ error: e }))
@@ -191,7 +197,7 @@ router.get("/webhook/commit", (req, res) => {
 })
 
 router.get('/installations', async (req, res) => {
-    try{
+    try {
 
         const { token } = req.query
 
@@ -199,7 +205,7 @@ router.get('/installations', async (req, res) => {
         const octokit = new Octokit({
             auth: token
         })
-        
+
         const resp = await octokit.request('GET /user/installations', {
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
@@ -207,29 +213,30 @@ router.get('/installations', async (req, res) => {
         })
 
         res.status(200).json(resp)
-    } catch(e){
+    } catch (e) {
         res.status(500).json(e)
     }
 })
 
 router.get('/repositories', async (req, res) => {
-    try{
+    try {
 
         const { token } = req.query
 
         console.log(token)
         const octokit = new Octokit({
-            auth: token
+            appId: process.env.APP_ID,
+            privateKey: process.env.PRIVATE_KEY,
         })
-        
-        const resp = await octokit.request('GET /installation/repositories', {
+
+        const resp = await octokit.request(`GET /user/installations/52387571/repositories`, {
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         })
-        
+
         res.status(200).json(resp)
-    } catch(e){
+    } catch (e) {
         res.status(500).json(e)
     }
 })
