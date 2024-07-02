@@ -264,7 +264,7 @@ router.post("/new", (req, res) => {
                 res.status(500).send('Error while creating challenge');
             } else {
                 const challengeId = result.rows[0].id;
-                const playerChallengeQuery = "INSERT INTO challenges_players (main_id, status, address, nbDone, user, target) VALUES ($1, $2, $3, $4, $5, $6)";
+                const playerChallengeQuery = "INSERT INTO challenges_players (main_id, status, address, nbDone, user_name, target) VALUES ($1, $2, $3, $4, $5, $6)";
 
                 players.forEach((player: string, i: number) => {
                     const playerData = [challengeId, i === 0 ? "during" : "pending", player, 0, i === 0 && challengedata.user, i === 0 && challengedata.target];
