@@ -25,8 +25,9 @@ router.get("/repo", async (req, res) => {
 
     const installation = await getInstallation(token?.toString())
     if (!installation) return
-    const result = octokit.request(`GET /installations/${installation[0].id}/repositories?per_page=100&page${page}`, {
+    const result = octokit.request(`GET /installations/{installation_id}/repositories`, {
         headers: {
+            "installation_id": installation[0].id,
             'X-GitHub-Api-Version': '2022-11-28',
             'Authorization': `token ${token}`,
         }
