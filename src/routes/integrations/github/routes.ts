@@ -156,7 +156,7 @@ router.post("/webhook/commit", (req, res) => {
         WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
         ELSE status
             END
-            WHERE target = $1 AND user = $2 AND status = pending`;
+            WHERE target = $1 AND user_name = $2 AND status = pending`;
 
         client.query(query, [repoId, username], (err, result) => {
              console.log(result)
