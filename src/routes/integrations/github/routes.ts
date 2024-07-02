@@ -109,6 +109,14 @@ router.post("/webhook", async (req, res) => {
     }
 })
 
+router.delete("/webhook", async (req, res) => {
+    try {
+
+    } catch (e) {
+        res.status(500).json({ error: e })
+    }  
+})
+
 router.get("/revoke", (req, res) => {
     const { token } = req.query
     const octokit = new Octokit({
@@ -129,134 +137,16 @@ router.get("/revoke", (req, res) => {
     }).catch((e) => res.status(500).json(`An error occured while revoking: ${e}`))
 })
 
-const redirectURI = 'https://b502-217-165-96-123.ngrok-free.app/github/callback';
-
-router.get('/callback', async (req, res) => {
-    const { code } = req.query;
-
-    try {
-        const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
-            client_id: process.env.GH_CLIENT_ID,
-            client_secret: process.env.GH_CLIENT_SECRET,
-            code,
-            redirect_uri: redirectURI
-        }, {
-            headers: { 'Accept': 'application/json' }
-        });
-
-        const { access_token } = tokenResponse.data;
-
-        // Fetch user data from GitHub
-        const userResponse = await axios.get('https://api.github.com/user', {
-            headers: { Authorization: `Bearer ${access_token}` }
-        });
-
-        const userData = userResponse.data;
-
-        // Generate JWT token or handle session as per your application's requirement
-        const jwtToken = jwt.sign(userData, 'your_jwt_secret');
-
-        res.status(200).json({ token: jwtToken, user: userData });
-    } catch (error) {
-        res.status(500).json({ error: (error as Error).message });
-    }
-});
-
-router.get('/auth', (req, res) => {
-    const githubAuthURL = `https://github.com/login/oauth/authorize?client_id=${process.env.GH_CLIENT_ID}&redirect_uri=${redirectURI}`;
-    res.redirect(githubAuthURL);
-});
-
-
-router.get('/commit', (req, res) => {
-    const octokit = new Octokit()
-    const today = new Date().toISOString().slice(0, 10);
-
-
-    octokit.request('GET /repos/mgavillo/dslr/commits', {
-        owner: 'mgavillo',
-        repo: 'dslr',
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    }).catch(e => {
-        res.status(500).json(`Failed : ${e}`)
-    }).then((r) => {
-
-        let commitToday = false
-        //@ts-ignore
-        r.data?.forEach((commit: any) => {
-            const commitDate = commit.committer.date?.slice(0, 10);
-            if (commitDate === today) {
-                commitToday = true
-            }
-        });
-        res.status(200).json(commitToday)
-    })
-})
-
-
-router.get("/webhook/commit", (req, res) => {
-    console.log("GITHUB WEBOOK GET")
-    console.log(req)
-    res.status(200).json({ message: "All good" })
-})
-
-router.get('/installations', async (req, res) => {
-    try {
-
-        const { token } = req.query
-
-        console.log(token)
-        const octokit = new Octokit({
-            auth: token
-        })
-
-        const resp = await octokit.request('GET /user/installations', {
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
-
-        res.status(200).json(resp)
-    } catch (e) {
-        res.status(500).json(e)
-    }
-})
-
-router.get('/repositories', async (req, res) => {
-    try {
-
-        const { token } = req.query
-
-        console.log(token)
-        const octokit = new Octokit({
-            appId: process.env.APP_ID,
-            privateKey: process.env.PRIVATE_KEY,
-        })
-
-        const resp = await octokit.request(`GET /user/installations/52387571/repositories`, {
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
-
-        res.status(200).json(resp)
-    } catch (e) {
-        res.status(500).json(e)
-    }
-})
-
 router.post("/webhook/commit", (req, res) => {
     try {
 
         console.log("GITHUB WEBOOK POST")
-        console.log(req)
 
         // Extract necessary data from the request
         const username = req.body.pusher.name;
         const repoId = req.body.repository.id;
 
+        console.log(repoId, username)
         const query =
             `UPDATE challenges_players
         SET 
@@ -268,7 +158,9 @@ router.post("/webhook/commit", (req, res) => {
             WHERE target = $1 AND user = $2 AND status = pending`;
 
         client.query(query, [repoId, username], (err, result) => {
-
+             console.log(result)
+             console.log(err)
+             res.status(200).json(result)
         })
     } catch (e) {
         console.log(e)
