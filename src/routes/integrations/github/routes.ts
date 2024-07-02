@@ -143,9 +143,10 @@ router.post("/webhook/commit", (req, res) => {
         console.log("GITHUB WEBOOK POST")
 
         // Extract necessary data from the request
-        const username = req.body.pusher.name;
+        const username = req.body.pusher?.name;
         const repoId = req.body.repository.id;
 
+        if(!username) return res.status(200).json({message: "Not a push event"})
         console.log(repoId, username)
         const query =
             `UPDATE challenges_players
