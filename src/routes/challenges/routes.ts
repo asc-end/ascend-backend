@@ -1,7 +1,7 @@
 import client from "../../lib/db";
 import express, { Request, Response } from "express";
 import { validate } from "../../lib/solana/validate";
-import { setChallengeDone } from "../../lib/challenges";
+import { archiveChallenge } from "../../lib/challenges";
 
 const router = express.Router();
 
@@ -236,7 +236,6 @@ router.get("/archived", (req, res) => {
 router.get("/next-id", async (req, res) => {
     try {
         const { address } = req.query;
-        console.log("address", address)
         const query = `SELECT MAX(solanaid) FROM challenges WHERE author = $1`;
         client.query(query, [address], (err, result) => {
             if (err) {
@@ -339,15 +338,13 @@ router.post("/validate-day", async (req, res) => {
 
 })
 
-router.post("/set-done", async (req, res) => {
+router.post("/archive", async (req, res) => {
     try {
         const { challengeId, address } = req.body;
 
-        await setChallengeDone(challengeId, address);
-
+        await archiveChallenge(challengeId, address);
         res.status(200).json({ message: 'Challenge updated successfully.' });
     } catch (err) {
-        console.error('Error updating challenge:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
     }
 });

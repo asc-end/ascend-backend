@@ -31,7 +31,7 @@ export interface ChainChallenge {
 export interface ChallengePlayer {
     id: number,
     main_id: number,
-    status: "pending" | "lost" | "won" | "archived-won" | "archived-lost",
+    status: "pending" | "lost" | "won" | "archived-won" | "archived-lost" | "during",
     address: string,
     nbdone: number
 }
