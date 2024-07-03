@@ -5,7 +5,7 @@ import { program } from "../lib/solana/config";
 
 export async function indexOnChainData() {
     checkExternalActions()
-    const accounts = await program.account.vault.all();
+    const accounts = await program?.account.vault.all();
     const dbAccounts = await getAllChallenges()
 
     setLostChallengesAsFinished()
@@ -24,9 +24,13 @@ export async function indexOnChainData() {
         const challengesPlayers = await getPlayers(challenge.id)
         e.account.counter.forEach((chainPlayer, index) => {
             const dbPlayer = challengesPlayers.rows[index]
-            if (chainPlayer !== dbPlayer.nbdone) {
+            if(!dbPlayer){
+                //TO DO add player if not existant
+            }
+            else if (chainPlayer !== dbPlayer.nbdone) {
                 updateNbDone(dbPlayer.main_id, dbPlayer.address, chainPlayer)
             }
+
         })
     })
 }
