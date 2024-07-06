@@ -14,13 +14,14 @@ import { load } from "cheerio"
 const octokit = new Octokit()
 
 export async function checkIfUserCastedToday(fid: number, startOfWindow: dayjs.Dayjs, endOfWindow: dayjs.Dayjs) {
+    console.log(fid,startOfWindow, endOfWindow)
     if (isNaN(fid)) {
         console.log('fid is NaN');
         return;
     }
     const resp = await neynarClient.fetchAllCastsCreatedByUser(fid, { limit: 1 })
     const date = dayjs(new Date(resp.result.casts[0].timestamp))
-    console.log(date.isAfter(startOfWindow))
+    console.log(date.isAfter(startOfWindow), startOfWindow.toString())
     console.log(date.isBefore(endOfWindow))
     console.log(date.toString())
     return (date.isAfter(startOfWindow) && date.isBefore(endOfWindow))
@@ -100,8 +101,6 @@ export async function checkIfUserTweetedToday(user: string, startOfWindow: dayjs
 
 export async function checkExternalActions() {
     try {
-
-        checkIfUserTweetedToday("", dayjs().subtract(2, "months"), dayjs())
         client.query(`
             SELECT
                 challenges.*,
@@ -117,19 +116,21 @@ export async function checkExternalActions() {
                 throw err;
             }
             res.rows.forEach(async (challenge: (Challenge & { nbdone: number, status: string, address: string })) => {
-                const { daysSinceStart, startOfWindow, endOfWindow } = getDayWindow(challenge.started)
+                // @ts-ignore
+                const { daysSinceStart, startOfWindow, endOfWindow } = getDayWindow(challenge.begindate)
 
                 console.log(daysSinceStart, startOfWindow.toString(), endOfWindow.toString())
                 if (!challenge.challengedata?.user || challenge.nbdone > daysSinceStart) return
 
                 let actionMade
-                if (challenge.type == "Socials" && challenge.challengedata.socialMedia == "Farcaster")
-                    actionMade = await checkIfUserCastedToday(challenge.challengedata.fid, startOfWindow, endOfWindow)
-                else if (challenge.type == "Socials" && challenge.challengedata.socialMedia == "Twitter")
-                    actionMade = await checkIfUserTweetedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
+                if (challenge.type == "Socials" && challenge.challengedata.target == "Farcaster")
+                    actionMade = await checkIfUserCastedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
+                // else if (challenge.type == "Socials" && challenge.challengedata.socialMedia == "Twitter")
+                //     actionMade = await checkIfUserTweetedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
                 else if (challenge.type == "Code")
                     actionMade = await checkIfUserCommitedToday(challenge.challengedata.user, challenge.challengedata.repo.name, startOfWindow, endOfWindow)
 
+                console.log(actionMade)
                 if (actionMade) {
                     let txSuccess = await validate(challenge.solanaid, challenge.author, challenge.address)
                     if (!txSuccess) {
