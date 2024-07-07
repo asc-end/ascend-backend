@@ -12,6 +12,7 @@ import jwt from "jsonwebtoken"
 import client from "../../../lib/db";
 import { setDayDone } from "../../../lib/challenges";
 import { getInstallation } from "../../../lib/integrations/github";
+import { validate } from "../../../lib/solana/validate";
 const router = express.Router();
 
 router.get("/repo", async (req, res) => {
@@ -114,7 +115,7 @@ router.delete("/webhook", async (req, res) => {
 
     } catch (e) {
         res.status(500).json({ error: e })
-    }  
+    }
 })
 
 router.get("/revoke", (req, res) => {
@@ -146,23 +147,48 @@ router.post("/webhook/commit", (req, res) => {
         const username = req.body.pusher?.name;
         const repoId = req.body.repository.id;
 
-        if(!username) return res.status(200).json({message: "Not a push event"})
-        console.log(repoId, username)
-        const query =
-            `UPDATE challenges_players
-        SET 
-        nbDone = nbDone + 1,
-        status = CASE 
-        WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
-        ELSE status
-            END
-            WHERE target = $1 AND user_name = $2 AND status = pending`;
+        console.log(username, repoId)
+        if (!username) return res.status(200).json({ message: "Not a push event" })
+        const challengeQuery = `
+        SELECT cp.*, u.address AS user_address, c.author AS author_address
+            FROM challenges_players cp
+            JOIN users u ON cp.address = u.address
+            JOIN challenges c ON cp.main_id = c.id
+            WHERE cp.target = $1 AND cp.user_name = $2
+        `;
 
-        client.query(query, [repoId, username], (err, result) => {
-             console.log(result)
-             console.log(err)
-             res.status(200).json(result)
-        })
+        client.query(challengeQuery, [repoId, username], (err, challengeResult) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: `Internal server error : ${err.message}` });
+            }
+
+            if (challengeResult.rows.length === 0) {
+                return res.status(404).json({ message: "No pending challenge found" });
+            }
+
+            const currentChallenge = challengeResult.rows[0];
+            console.log(currentChallenge);
+
+            // Validate the current challenge
+            validate(currentChallenge.solana_id, currentChallenge.author_address, currentChallenge.user_address);
+
+            // const query =
+            //     `UPDATE challenges_players
+            //     SET 
+            //     nbDone = nbDone + 1,
+            //     status = CASE 
+            //     WHEN $3 = nbDone + 1 THEN 'won' 
+            //     ELSE status
+            //     END
+            //     WHERE target = $1 AND user_name = $2 AND status = 'pending'`;
+
+            // client.query(query, [repoId, username, currentChallenge.time], (err, result) => {
+            //     console.log(result);
+            //     console.log(err);
+            //     res.status(200).json(result);
+            // });
+        });
     } catch (e) {
         console.log(e)
         res.status(500).json({ error: e })
