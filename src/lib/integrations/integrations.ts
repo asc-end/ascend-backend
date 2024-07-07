@@ -106,7 +106,9 @@ export async function checkExternalActions() {
                 challenges.*,
                 challenges_players.status,
                 challenges_players.address,
-                challenges_players.nbDone
+                challenges_players.nbDone,
+                challenges_players.user_name,
+                challenges_players.target
             FROM challenges
             INNER JOIN challenges_players ON challenges.id = challenges_players.main_id
             WHERE (challenges.type = 'Socials' OR challenges.type = 'Code')
@@ -119,16 +121,16 @@ export async function checkExternalActions() {
                 // @ts-ignore
                 const { daysSinceStart, startOfWindow, endOfWindow } = getDayWindow(challenge.begindate)
 
-                console.log(daysSinceStart, startOfWindow.toString(), endOfWindow.toString())
+                console.log(daysSinceStart, startOfWindow.toString(), endOfWindow.toString(), challenge)
                 if (!challenge.challengedata?.user || challenge.nbdone > daysSinceStart) return
 
                 let actionMade
                 if (challenge.type == "Socials" && challenge.challengedata.target == "Farcaster")
-                    actionMade = await checkIfUserCastedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
+                    actionMade = await checkIfUserCastedToday(challenge.user_name, startOfWindow, endOfWindow)
                 // else if (challenge.type == "Socials" && challenge.challengedata.socialMedia == "Twitter")
                 //     actionMade = await checkIfUserTweetedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
-                else if (challenge.type == "Code")
-                    actionMade = await checkIfUserCommitedToday(challenge.challengedata.user, challenge.challengedata.repo.name, startOfWindow, endOfWindow)
+                // else if (challenge.type == "Code")
+                    // actionMade = await checkIfUserCommitedToday(challenge.challengedata.user, challenge.challengedata.repo.name, startOfWindow, endOfWindow)
 
                 console.log(actionMade)
                 if (actionMade) {

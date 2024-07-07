@@ -10,7 +10,9 @@ export interface Challenge {
     type: string,
     author: string,
     challengedata: any
-    state?: "Pending" | "Ongoing" | "Finished" | "Canceled" | "Closed"
+    state?: "Pending" | "Ongoing" | "Finished" | "Canceled" | "Closed",
+    user_name: number,
+    target: string,
 }
 
 export interface ChainChallenge {
