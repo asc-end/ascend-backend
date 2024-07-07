@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { QueryResult } from "pg";
 import client from "./db";
 import { PublicKey } from "@solana/web3.js";
@@ -76,7 +76,7 @@ export async function setLostChallengesAsFinished() {
         FROM challenges 
         WHERE challenges_players.main_id = challenges.id 
         AND challenges_players.status = 'during' 
-        AND challenges.begindate + (challenges_players.nbDone * INTERVAL '1 day') < CURRENT_DATE;
+        AND challenges.begindate + (challenges_players.nbDone || ' day')::interval < CURRENT_DATE;
     `;
     return new Promise((resolve, reject) => {
         client.query(query, (err, result) => {
@@ -181,11 +181,11 @@ export function addChallengePlayers(players: string[], challengeId: number, chal
             .catch(err => reject(err));
     });
 }
-export async function createChallenge(begindate: number, type: string, stake: number, time: number, players: string[], challengedata: object, solanaid: number): Promise<number | null>{    
+export async function createChallenge(begindate: dayjs.Dayjs, type: string, stake: number, time: number, players: string[], challengedata: object, solanaid: number): Promise<number | null>{    
     const jsondata = JSON.stringify(challengedata)
     const challengeQuery = "INSERT INTO challenges (begindate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
     return new Promise((resolve, reject) =>
-        client.query(challengeQuery, [new Date(begindate).toISOString(), type, stake, time, players[0], jsondata, solanaid], async (err, result) => {
+        client.query(challengeQuery, [begindate.toISOString(), type, stake, time, players[0], jsondata, solanaid], async (err, result) => {
             if (err) {
                 reject(err)
             } else {
