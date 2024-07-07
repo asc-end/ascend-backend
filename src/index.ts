@@ -172,6 +172,7 @@ cron.schedule('*/10 * * * *', async () => {
     indexOnChainData()
 });
 
+indexOnChainData()
 // scrapeGithub(`https://raw.githubusercontent.com/asc-end/ascend-backend/commits/main/`)
 // createDeck("language", ["language"], data)
 

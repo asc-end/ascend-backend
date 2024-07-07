@@ -144,20 +144,19 @@ router.post("/webhook/commit", (req, res) => {
         console.log("GITHUB WEBOOK POST")
 
         // Extract necessary data from the request
-        const username = req.body.pusher?.name;
+        const username = req.body.pusher.name;
         const repoId = req.body.repository.id;
 
-        console.log(username, repoId)
         if (!username) return res.status(200).json({ message: "Not a push event" })
         const challengeQuery = `
-        SELECT cp.*, u.address AS user_address, c.author AS author_address
+        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid
             FROM challenges_players cp
             JOIN users u ON cp.address = u.address
             JOIN challenges c ON cp.main_id = c.id
             WHERE cp.target = $1 AND cp.user_name = $2
         `;
 
-        client.query(challengeQuery, [repoId, username], (err, challengeResult) => {
+        client.query(challengeQuery, [repoId, username], async (err, challengeResult) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: `Internal server error : ${err.message}` });
@@ -171,8 +170,12 @@ router.post("/webhook/commit", (req, res) => {
             console.log(currentChallenge);
 
             // Validate the current challenge
-            validate(currentChallenge.solana_id, currentChallenge.author_address, currentChallenge.user_address);
+            console.log(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
+            let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
 
+            if(!resp) throw Error()
+            console.log(resp)
+            res.status(200).json({message: "Successfully validated day."})
             // const query =
             //     `UPDATE challenges_players
             //     SET 
