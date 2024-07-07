@@ -27,7 +27,10 @@ router.get("/", async (req, res) => {
                     'name', u_all.name, 
                     'pfp_url', u_all.pfp_url, 
                     'cover_picture_url', u_all.cover_picture_url, 
-                    'description', u_all.description) ORDER BY cp_all.id
+                    'description', u_all.description,
+                    'target', cp_all.target,
+                    'user', cp_all.user
+                ) ORDER BY cp_all.id
             ) AS players
         FROM 
             (
