@@ -132,6 +132,7 @@ router.post("/webhook/cast", (req, res) => {
 
         console.log("WARPCAST WEBOOK POST")
 
+        console.log(req.body)
         // Extract necessary data from the request
         const fid = req.body.pusher.name;
 
