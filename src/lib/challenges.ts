@@ -76,7 +76,7 @@ export async function setLostChallengesAsFinished() {
         FROM challenges 
         WHERE challenges_players.main_id = challenges.id 
         AND challenges_players.status = 'during' 
-        AND challenges.begindate + (challenges_players.nbDone || ' day')::interval < CURRENT_DATE;
+        AND challenges.begindate + (challenges_players.nbDone + 1 || ' day')::interval < CURRENT_DATE;
     `;
     return new Promise((resolve, reject) => {
         client.query(query, (err, result) => {
