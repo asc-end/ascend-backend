@@ -5,6 +5,8 @@ import { createAppClient, viemConnector } from "@farcaster/auth-client";
 import neynarClient from "../../../lib/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { validate } from "../../../lib/solana/validate";
+import { getDayWindow } from "../../../lib/challenges";
+import dayjs from "dayjs";
 const router = express.Router();
 
 export const appClient = createAppClient({
@@ -134,10 +136,10 @@ router.post("/webhook/cast", (req, res) => {
 
         console.log(req.body)
         // Extract necessary data from the request
-        const fid = req.body.pusher.name;
+        const fid = req.body.fid;
 
         const challengeQuery = `
-        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid
+        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.begindate
             FROM challenges_players cp
             JOIN users u ON cp.address = u.address
             JOIN challenges c ON cp.main_id = c.id
@@ -151,9 +153,15 @@ router.post("/webhook/cast", (req, res) => {
                 return res.status(404).json({ message: "No pending challenge found" });
 
             const currentChallenge = challengeResult.rows[0];
-            let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
+            const {startOfWindow, endOfWindow } = getDayWindow(currentChallenge.begindate)
+            if (dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow)) {
+                let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
+                if (!resp) throw Error()
 
-            if (!resp) throw Error()
+            } else {
+                throw Error()
+            }
+
             res.status(200).json({ message: "Successfully validated day." })
         });
     } catch (e) {
