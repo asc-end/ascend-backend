@@ -133,7 +133,7 @@ router.post("/webhook/cast", (req, res) => {
     try {
         const fid = req.body.fid;
 
-        console.log(req.body)
+        console.log(req.body, fid)
         const challengeQuery = `
         SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
             FROM challenges_players cp
@@ -145,12 +145,14 @@ router.post("/webhook/cast", (req, res) => {
         client.query(challengeQuery, ["Farcaster", fid], async (err, challengeResult) => {
             if (err)
                 return res.status(500).json({ error: `Internal server error : ${err.message}` });
-            if (challengeResult.rows.length === 0)
+            if (challengeResult.rows.length === 0) {
+                console.log("no pending found")
                 return res.status(404).json({ message: "No pending challenge found" });
+            }
 
             const currentChallenge = challengeResult.rows[0];
-            const {startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
-            console.log(startOfWindow, endOfWindow,dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow), dayjs(req.body.timestamp).toString())
+            const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
+            console.log(startOfWindow, endOfWindow, dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow), dayjs(req.body.timestamp).toString())
             if (dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow)) {
                 let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
                 if (!resp) throw Error()
