@@ -352,4 +352,18 @@ router.post("/archive", async (req, res) => {
     }
 });
 
+
+router.post("/set-done", async (req, res) => {
+    try {
+        const { challengeId, address } = req.body;
+
+        await archiveChallenge(challengeId, address);
+
+        res.status(200).json({ message: 'Challenge updated successfully.' });
+    } catch (err) {
+        console.error('Error updating challenge:', err);
+        res.status(500).json({ error: `Internal server error ${err}` });
+    }
+});
+
 export default router 
