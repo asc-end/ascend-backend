@@ -366,9 +366,8 @@ router.post("/set-done", async (req, res) => {
     try {
         const { challengeId, address } = req.body;
 
-        // await archiveChallenge(challengeId, address);
+        await archiveChallenge(challengeId, address);
 
-        await deleteWebhook(challengeId)
         res.status(200).json({ message: 'Challenge updated successfully.' });
     } catch (err) {
         console.error('Error updating challenge:', err);

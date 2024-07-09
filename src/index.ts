@@ -14,6 +14,7 @@ import client from "./lib/db";
 import { indexOnChainData } from "./indexer";
 import { createDeck } from "./lib/flaschards";
 import { scrapeGithub } from "./lib/integrations/integrations";
+import { createWebsocket, syncDbWithChain } from "./lib/webhook";
 const cron = require('node-cron');
 const cors = require("cors");
 
@@ -24,8 +25,14 @@ app.use(express.json())
 const allowedOrigins = ["http://localhost:3000", "http://localhost:19006", "https://u.expo.dev/ffc4f432-c8b6-4087-93b8-db25caadabaa", "https://u.expo.dev/update/76d0f7b2-e7c8-451b-b6ba-25e1ab456d6f", "*", "http://192.168.1.66.8081:19006", "https://exp+app://expo-development-client/?url=http%3A%2F%2F192.168.1.66%3A8081", "http://u33oacq-ascendmarie-8081.exp.direct"];
 
 // Function to execute query and handle error
-function executeQuery(query: string) {
+export function executeQuery(query: string) {
     client.query(query, (err, res) => {
+        if (err) throw err;
+    });
+}
+
+export function executeQueryWithParams(query: string, params: any[]) {
+    client.query(query, params, (err, res) => {
         if (err) throw err;
     });
 }
@@ -76,7 +83,6 @@ CREATE TABLE IF NOT EXISTS friendships (
 );
 `);
 
-// add address
 executeQuery(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
@@ -85,8 +91,9 @@ CREATE TABLE IF NOT EXISTS challenges (
     solanaid INTEGER,
     time INTEGER,
     type TEXT,
-    stake INTEGER,
+    stake NUMERIC,
     author TEXT,
+    state TEXT,
     challengedata JSONB
 );`);
 
@@ -100,7 +107,6 @@ executeQuery(`
         user_name TEXT,
         target TEXT
     )`);
-
 
 export const cardsSchema = [
     `
@@ -139,25 +145,11 @@ const thirdPartyProfiles = `
     )
 `
 
-// const thirdPartyProfiles = `
-//     DROP TABLE IF EXISTS app_profiles
-// `
 executeQuery(thirdPartyProfiles)
 
+// createWebhook()
+createWebsocket()
 cardsSchema.forEach((schema) => executeQuery(schema))
-
-function executeQueryWithParams(query: string, params: any[]) {
-    client.query(query, params, (err, res) => {
-        if (err) throw err;
-    });
-}
-
-// const query = `
-//     DROP TABLE IF EXISTS users_cards
-// `;
-// executeQuery(query)
-
-// executeQueryWithParams(query, [JSON.stringify({"deckId": 2, from: "country", to: "capital"}), 14])
 
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
@@ -169,14 +161,6 @@ app.use('/integrations/farcaster', farcasterRoutes);
 app.use('/integrations/twitter', twitterRoutes);
 app.use("/tables", tableRoutes)
 app.use("/index", indexRoutes)
-
-cron.schedule('*/10 * * * *', async () => {
-    indexOnChainData()
-});
-
-indexOnChainData()
-// scrapeGithub(`https://raw.githubusercontent.com/asc-end/ascend-backend/commits/main/`)
-// createDeck("language", ["language"], data)
 
 // Start server
 const PORT = process.env.PORT || 3002;
