@@ -133,6 +133,7 @@ router.post("/webhook/cast", (req, res) => {
     try {
         const fid = req.body.fid;
 
+        console.log(req.body)
         const challengeQuery = `
         SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
             FROM challenges_players cp
@@ -149,6 +150,7 @@ router.post("/webhook/cast", (req, res) => {
 
             const currentChallenge = challengeResult.rows[0];
             const {startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
+            console.log(startOfWindow, endOfWindow,dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow), dayjs(req.body.timestamp).toString())
             if (dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow)) {
                 let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
                 if (!resp) throw Error()
