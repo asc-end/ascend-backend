@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
         const query = `
             SELECT 
             c.id, 
-            c.beginDate,
+            c.started,
             c.time,
             c.type,
             c.stake,
@@ -95,7 +95,7 @@ router.get("/feed", async (req, res) => {
         const query = `
         SELECT 
             challenges.id,
-            begindate AS event_date,
+            started AS event_date,
             'begin' AS event_type,
             solanaid,
             time,
@@ -122,7 +122,7 @@ router.get("/feed", async (req, res) => {
         INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends' AND
-            begindate <= NOW()
+            started <= NOW()
         GROUP BY 
             challenges.id,
             event_date,
@@ -136,7 +136,7 @@ router.get("/feed", async (req, res) => {
         UNION ALL
         SELECT 
             challenges.id,
-            begindate + INTERVAL '1 day' * time AS event_date,
+            started + INTERVAL '1 day' * time AS event_date,
             'end' AS event_type,
             solanaid,
             time,
@@ -163,7 +163,7 @@ router.get("/feed", async (req, res) => {
         INNER JOIN users u ON u.address = cp.address
         WHERE 
             friendships.status = 'friends' AND
-            (begindate + INTERVAL '1 day' * time) <= NOW() AND
+            (started + INTERVAL '1 day' * time) <= NOW() AND
             NOT EXISTS (
                 SELECT 1 FROM challenges_players 
                 WHERE main_id = challenges.id AND status = 'pending'
@@ -268,7 +268,7 @@ router.post("/new", async (req, res) => {
         // await watchAddress(accountAddr.toString())
 
         const jsondata = JSON.stringify(challengedata)
-        const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
+        const challengeQuery = "INSERT INTO challenges (started, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
         client.query(challengeQuery, [begindate, type, stake, time, players[0], jsondata, solanaid], (err, result) => {
             if (err) {
                 console.log(err.stack);

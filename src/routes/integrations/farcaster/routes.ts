@@ -134,7 +134,7 @@ router.post("/webhook/cast", (req, res) => {
         const fid = req.body.fid;
 
         const challengeQuery = `
-        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.begindate
+        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
             FROM challenges_players cp
             JOIN users u ON cp.address = u.address
             JOIN challenges c ON cp.main_id = c.id
@@ -148,7 +148,7 @@ router.post("/webhook/cast", (req, res) => {
                 return res.status(404).json({ message: "No pending challenge found" });
 
             const currentChallenge = challengeResult.rows[0];
-            const {startOfWindow, endOfWindow } = getDayWindow(currentChallenge.begindate)
+            const {startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
             if (dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow)) {
                 let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
                 if (!resp) throw Error()
