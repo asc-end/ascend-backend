@@ -2,17 +2,15 @@ import { error } from "console";
 
 export async function deleteFarcasterWebhook() {
     try {
-
-        const fetch = require('node-fetch');
-
         const url = 'https://api.neynar.com/v2/farcaster/webhook/list';
         const options = {
             method: 'GET',
             headers: { accept: 'application/json', api_key: process.env.NEYNAR_API_KEY!! }
         };
 
-        const webhooks = fetch(url, options).then((res: any) => res.json())
-            .then((json: any) => console.log(json))
+        const webhooks = fetch(url, options)
+            .then((res) => res.json())
+            .then((json) => console.log(json))
 
 
         console.log(webhooks)
