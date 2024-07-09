@@ -131,11 +131,6 @@ router.post("/webhook", async (req, res) => {
 
 router.post("/webhook/cast", (req, res) => {
     try {
-
-        console.log("WARPCAST WEBOOK POST")
-
-        console.log(req.body)
-        // Extract necessary data from the request
         const fid = req.body.fid;
 
         const challengeQuery = `

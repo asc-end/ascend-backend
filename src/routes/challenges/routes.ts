@@ -2,6 +2,8 @@ import client from "../../lib/db";
 import express, { Request, Response } from "express";
 import { validate } from "../../lib/solana/validate";
 import { archiveChallenge } from "../../lib/challenges";
+import { deleteFarcasterWebhook } from "../../lib/integrations/farcaster";
+import { deleteWebhook } from "../../lib/integrations/webhooks";
 
 const router = express.Router();
 
@@ -357,8 +359,9 @@ router.post("/set-done", async (req, res) => {
     try {
         const { challengeId, address } = req.body;
 
-        await archiveChallenge(challengeId, address);
+        // await archiveChallenge(challengeId, address);
 
+        await deleteWebhook(challengeId)
         res.status(200).json({ message: 'Challenge updated successfully.' });
     } catch (err) {
         console.error('Error updating challenge:', err);
