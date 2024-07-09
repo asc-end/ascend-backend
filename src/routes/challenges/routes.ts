@@ -264,10 +264,8 @@ router.post("/new", async (req, res) => {
     try {
         const { begindate, type, stake, time, players, challengedata, solanaid } = req.body;
 
-        console.log(new PublicKey(players[0]), solanaid, program.programId)
-
-        const accountAddr = getProgramDerivedAddress("vault", new PublicKey(players[0]), new BN(solanaid), program.programId);
-        await watchAddress(accountAddr.toString())
+        // const accountAddr = getProgramDerivedAddress("vault", new PublicKey(players[0]), new BN(solanaid), program.programId);
+        // await watchAddress(accountAddr.toString())
 
         const jsondata = JSON.stringify(challengedata)
         const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
