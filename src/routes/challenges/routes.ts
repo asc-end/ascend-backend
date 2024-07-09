@@ -4,7 +4,7 @@ import { validate } from "../../lib/solana/validate";
 import { archiveChallenge } from "../../lib/challenges";
 import { deleteFarcasterWebhook } from "../../lib/integrations/farcaster";
 import { deleteWebhook } from "../../lib/integrations/webhooks";
-import { addAddress } from "../../lib/webhook";
+import { watchAddress } from "../../lib/webhook";
 import { getProgramDerivedAddress } from "../../lib/solana/utils";
 import { PublicKey } from "@solana/web3.js";
 import { program } from "../../lib/solana/config";
@@ -267,7 +267,7 @@ router.post("/new", async (req, res) => {
         console.log(new PublicKey(players[0]), solanaid, program.programId)
 
         const accountAddr = getProgramDerivedAddress("vault", new PublicKey(players[0]), new BN(solanaid), program.programId);
-        await addAddress(accountAddr.toString())
+        await watchAddress(accountAddr.toString())
 
         const jsondata = JSON.stringify(challengedata)
         const challengeQuery = "INSERT INTO challenges (beginDate, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"

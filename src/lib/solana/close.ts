@@ -4,8 +4,11 @@ import * as anchor from "@coral-xyz/anchor";
 import { getProgramDerivedAddress } from "./utils";
 import * as borsh from '@project-serum/borsh'
 import { connection, keypair, program } from "./config";
+import { forgetAddress } from "../webhook";
 
 export async function close(author: PublicKey, account: PublicKey) {
+    await forgetAddress(account.toString())
+
     program.methods
         .close(author)
         .accounts({
