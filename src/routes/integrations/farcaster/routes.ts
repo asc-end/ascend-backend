@@ -131,9 +131,10 @@ router.post("/webhook", async (req, res) => {
 
 router.post("/webhook/cast", (req, res) => {
     try {
-        const fid = req.body.fid;
+        const fid = req.body.data.author.fid;
 
-        console.log(req.body, fid)
+        console.log("BODY", req.body)
+        console.log("FID : ", fid)
         const challengeQuery = `
         SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
             FROM challenges_players cp
