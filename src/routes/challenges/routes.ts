@@ -13,6 +13,7 @@ router.get("/", async (req, res) => {
             c.id, 
             c.started,
             c.time,
+            c.state,
             c.type,
             c.stake,
             c.challengeData,
@@ -41,7 +42,7 @@ router.get("/", async (req, res) => {
             JOIN 
                 users u ON u.address = cp.address
             WHERE 
-                cp.address = $1
+                cp.address = $1 AND cp.status != "archived-won" AND cp.status != "archived-lost"
             ) sub
         JOIN challenges c ON c.id = sub.id
         JOIN challenges_players cp_all ON c.id = cp_all.main_id
@@ -93,6 +94,7 @@ router.get("/feed", async (req, res) => {
             solanaid,
             time,
             type,
+            state::text,  -- Cast state to text
             stake,
             author,
             challengedata,
@@ -121,6 +123,7 @@ router.get("/feed", async (req, res) => {
             event_date,
             event_type,
             solanaid,
+            state,
             time,
             type,
             stake,
@@ -132,6 +135,7 @@ router.get("/feed", async (req, res) => {
             started + INTERVAL '1 day' * time AS event_date,
             'end' AS event_type,
             solanaid,
+            state::text,  -- Cast state to text
             time,
             type,
             stake,
@@ -166,6 +170,7 @@ router.get("/feed", async (req, res) => {
             event_date,
             event_type,
             solanaid,
+            state,
             time,
             type,
             stake,
