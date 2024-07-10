@@ -1,14 +1,7 @@
-import client from "../../lib/db";
-import express, { Request, Response } from "express";
+import client from "../../config/db";
+import express from "express";
 import { validate } from "../../lib/solana/validate";
 import { archiveChallenge } from "../../lib/challenges";
-import { deleteFarcasterWebhook } from "../../lib/integrations/farcaster";
-import { deleteWebhook } from "../../lib/integrations/webhooks";
-import { watchAddress } from "../../lib/webhook";
-import { getProgramDerivedAddress } from "../../lib/solana/utils";
-import { PublicKey } from "@solana/web3.js";
-import { program } from "../../lib/solana/config";
-import { BN } from "@coral-xyz/anchor"
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -128,7 +121,6 @@ router.get("/feed", async (req, res) => {
             event_date,
             event_type,
             solanaid,
-            started,
             time,
             type,
             stake,
@@ -174,7 +166,6 @@ router.get("/feed", async (req, res) => {
             event_date,
             event_type,
             solanaid,
-            started,
             time,
             type,
             stake,
@@ -265,9 +256,6 @@ router.get("/next-id", async (req, res) => {
 router.post("/new", async (req, res) => {
     try {
         const { begindate, type, stake, time, players, challengedata, solanaid } = req.body;
-
-        // const accountAddr = getProgramDerivedAddress("vault", new PublicKey(players[0]), new BN(solanaid), program.programId);
-        // await watchAddress(accountAddr.toString())
 
         const jsondata = JSON.stringify(challengedata)
         const challengeQuery = "INSERT INTO challenges (started, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"

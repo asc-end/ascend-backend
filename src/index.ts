@@ -1,4 +1,5 @@
 import express from "express";
+
 import userRoutes from "./routes/users/routes"
 import friendshipsRoutes from "./routes/friendships/routes"
 import challengesRoutes from "./routes/challenges/routes"
@@ -8,13 +9,10 @@ import farcasterRoutes from "./routes/integrations/farcaster/routes"
 import twitterRoutes from "./routes/integrations/twitter/routes"
 import integrationsRoutes from "./routes/integrations/routes"
 import tableRoutes from "./routes/tables/routes"
-import indexRoutes from "./routes/index/routes"
 
-import client from "./lib/db";
-import { indexOnChainData } from "./indexer";
-import { createDeck } from "./lib/flaschards";
-import { scrapeGithub } from "./lib/integrations/integrations";
-import { createWebsocket, syncDbWithChain } from "./lib/webhook";
+import client from "./config/db";
+import { createWebsocket } from "./lib/webhook";
+
 const cron = require('node-cron');
 const cors = require("cors");
 
@@ -83,6 +81,7 @@ CREATE TABLE IF NOT EXISTS friendships (
 );
 `);
 
+// add address
 executeQuery(`
 CREATE TABLE IF NOT EXISTS challenges (
     id SERIAL PRIMARY KEY,
@@ -160,7 +159,6 @@ app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
 app.use('/integrations/twitter', twitterRoutes);
 app.use("/tables", tableRoutes)
-app.use("/index", indexRoutes)
 
 // Start server
 const PORT = process.env.PORT || 3002;

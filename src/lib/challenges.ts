@@ -1,8 +1,7 @@
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { QueryResult } from "pg";
-import client from "./db";
-import { PublicKey } from "@solana/web3.js";
-import { ChainChallenge, Challenge, ChallengePlayer } from "../types/types";
+import client from "../config/db";
+import { Challenge, ChallengePlayer } from "../types/types";
 
 export function getDayWindow(startedAt: string) {
     const challengeStartDate = dayjs(startedAt);
@@ -55,18 +54,19 @@ export async function setChallengeDone(solanaId: number, address: string, status
     });
 }
 
-export async function setDayDone() {
+//indexer
+// export async function setDayDone() {
 
-    const query =
-        `UPDATE challenges_players
-    SET 
-        nbDone = nbDone + 1,
-        status = CASE 
-            WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
-            ELSE status
-        END
-    WHERE main_id = $1 AND address = $2`;
-}
+//     const query =
+//         `UPDATE challenges_players
+//         SET 
+//             nbDone = nbDone + 1,
+//             status = CASE 
+//                 WHEN (SELECT time FROM challenges WHERE id = challenges_players.main_id) = nbDone + 1 THEN 'won' 
+//                 ELSE status
+//             END
+//         WHERE main_id = $1 AND address = $2`;
+// }
 
 
 export async function setLostChallengesAsFinished() {
@@ -89,30 +89,30 @@ export async function setLostChallengesAsFinished() {
     });
 }
 
-export async function setWonChallengesAsFinished() {
-    const query = `
-        UPDATE challenges_players 
-        SET status = 'won' 
-        FROM challenges 
-        WHERE challenges_players.main_id = challenges.id 
-        AND challenges_players.status = 'during' 
-        AND challenges.time = challenges_players.nbdone;
-    `;
-    return new Promise((resolve, reject) => {
-        client.query(query, (err, result) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-}
+//indexer
+// export async function setWonChallengesAsFinished() {
+//     const query = `
+//         UPDATE challenges_players 
+//         SET status = 'won' 
+//         FROM challenges 
+//         WHERE challenges_players.main_id = challenges.id 
+//         AND challenges_players.status = 'during' 
+//         AND challenges.time = challenges_players.nbdone;
+//     `;
+//     return new Promise((resolve, reject) => {
+//         client.query(query, (err, result) => {
+//             if (err) {
+//                 reject(err);
+//             } else {
+//                 resolve(result);
+//             }
+//         });
+//     });
+// }
 
 export async function updateNbDone(id: number, address: string, nbdone: number) {
     const query = `UPDATE challenges_players
-        SET
-            nbdone = $3
+        SET nbdone = $3
         WHERE main_id = $1 AND address = $2`;
 
     return new Promise((resolve, reject) => {
@@ -181,6 +181,7 @@ export function addChallengePlayers(players: string[], challengeId: number, chal
             .catch(err => reject(err));
     });
 }
+
 export async function createChallenge(begindate: dayjs.Dayjs, type: string, stake: number, time: number, players: string[], challengedata: object, solanaid: number): Promise<number | null>{    
     const jsondata = JSON.stringify(challengedata)
     const challengeQuery = "INSERT INTO challenges (started, type, stake, time, author, challengedata, solanaid) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"

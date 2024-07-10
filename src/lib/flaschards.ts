@@ -1,5 +1,4 @@
-import client from "./db";
-
+import client from "../config/db";
 
 async function insertDeck(deck_name: string, tags: string[], columns: string[]): Promise<number> {
     const query = `
@@ -54,7 +53,6 @@ async function insertCard(deck_id: number, columns: string, card: any) {
     })
 }
 
-
 export async function createDeck(deck_name: string, tags: string[], data: any[]) {
     try {
         const columnsArray = Object.keys(data[0]).map(key => `${key}`)
@@ -76,21 +74,3 @@ export async function createDeck(deck_name: string, tags: string[], data: any[])
         console.log(e)
     }
 }
-
-// export function importCapitalFromJson(data: { country: string, capital: string }[]) {
-//     try {
-//         data.forEach((flashcard) => {
-//             const query = "INSERT INTO capital_cards (country, capital) SELECT $1, $2"
-//             client.query(query, [flashcard.country, flashcard.capital], (err, result) => {
-//                 if (err) {
-//                     console.error('Error inserting flashcard:', err);
-//                     return;
-//                 }
-//             });
-//         })
-
-//     } catch (e) {
-//         console.log(e)
-//     }
-// }
-

@@ -1,10 +1,10 @@
 
 import express from "express";
-import client from "../../../lib/db";
+import client from "../../../config/db";
 import { createAppClient, viemConnector } from "@farcaster/auth-client";
-import neynarClient from "../../../lib/neynar";
+import neynarClient from "../../../config/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { validateDay } from "../../../lib/integrations/webhooks";
+import { validateDay } from "../../../lib/integrations/integrations";
 const router = express.Router();
 
 export const appClient = createAppClient({
@@ -127,7 +127,7 @@ router.post("/webhook/cast", async (req, res) => {
     try {
         const fid = req.body.data.author.fid;
 
-        console.log(req)
+        console.log(req.body)
         let resp = await validateDay("Farcaster", fid, req.body.timestamp)
         res.status(200).json({ message: resp })
 

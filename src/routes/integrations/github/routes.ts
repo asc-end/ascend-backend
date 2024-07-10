@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import { Octokit } from "octokit";
 
 let createOAuthUserAuth: any;
@@ -6,12 +6,9 @@ let createOAuthUserAuth: any;
 import("@octokit/auth-oauth-user").then((module) => {
     createOAuthUserAuth = module.createOAuthUserAuth;
 });
-import client from "../../../lib/db";
-import { getDayWindow, setDayDone } from "../../../lib/challenges";
+import client from "../../../config/db";
 import { getInstallation } from "../../../lib/integrations/github";
-import { validate } from "../../../lib/solana/validate";
-import dayjs from "dayjs";
-import { validateDay } from "../../../lib/integrations/webhooks";
+import { validateDay } from "../../../lib/integrations/integrations";
 const router = express.Router();
 
 router.get("/repo", async (req, res) => {
@@ -142,10 +139,11 @@ router.post("/webhook/commit", async (req, res) => {
         const username = req.body.pusher.name;
         const repoId = req.body.repository.id;
 
-        console.log(req)
+
+        console.log(req.body)
         if (!username) return res.status(200).json({ message: "Not a push event" })
 
-        let resp = await validateDay(repoId, username, req.body.timestamp)
+        let resp = await validateDay(repoId, username, req.body.head_commit.timestamp)
         res.status(200).json({ message: resp })
     } catch (e) {
         console.log(e)

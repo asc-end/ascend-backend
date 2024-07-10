@@ -2,8 +2,7 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { getProgramDerivedAddress } from "./utils";
-import * as borsh from '@project-serum/borsh'
-import { connection, keypair, program } from "./config";
+import { borshAccount, connection, keypair, program } from "../../config/solana";
 import { forgetAddress } from "../webhook";
 
 export async function close(author: PublicKey, account: PublicKey) {
@@ -37,23 +36,6 @@ export async function closePda(id: number, authorAddress: string) {
         return false
     }
 }
-
-const borshAccount = borsh.struct([
-    borsh.u64("discriminator"),
-    borsh.vec(borsh.publicKey(), "players"),
-    borsh.publicKey('validateKey'),
-    borsh.publicKey('withdrawKey'),
-    borsh.u64("id"),
-    borsh.u64("stake"),
-    borsh.u8("time"),
-    borsh.vec(borsh.bool(), "deposit"),
-    borsh.u64("balance"),
-    borsh.vecU8("counter"),
-    borsh.i64("created"),
-    borsh.i64("started"),
-    borsh.i64("state"),
-
-])
 
 export async function getAllClosable() {
     const accounts = await connection.getProgramAccounts(program.programId)

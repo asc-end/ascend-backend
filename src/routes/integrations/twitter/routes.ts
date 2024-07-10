@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import client from "../../../lib/db";
+import client from "../../../config/db";
 const router = express.Router();
 
 router.post("/create", async (req, res) => {

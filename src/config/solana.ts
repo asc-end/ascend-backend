@@ -1,7 +1,7 @@
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
-import { IDL, Vault } from "./idl/vault";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { IDL, Vault } from "../lib/solana/idl/vault";
 import * as bip39 from "bip39";
 import * as borsh from '@project-serum/borsh'
 

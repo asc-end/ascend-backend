@@ -1,13 +1,13 @@
 import dayjs from "dayjs";
 
 import { Octokit } from "octokit";
-import neynarClient from "../neynar";
-import client from "../db";
+import neynarClient from "../../config/neynar";
+import client from "../../config/db";
 import { Challenge } from "../../types/types";
 import { validate } from "../solana/validate";
 import { getDayWindow } from "../challenges";
-import { TweetV2UserTimelineParams, TwitterApi } from "twitter-api-v2";
-import { twitterClient } from "./twitter";
+import { TweetV2UserTimelineParams } from "twitter-api-v2";
+import { twitterClient } from "../../config/twitter";
 import axios from "axios";
 import { load } from "cheerio"
 
@@ -145,4 +145,39 @@ export async function checkExternalActions() {
     } catch (e) {
         console.log(e)
     }
+}
+
+export async function validateDay(target: string, user: string, timestamp: string) {
+    return new Promise((resolve, reject) => {
+        try {
+            const challengeQuery = `
+            SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
+                FROM challenges_players cp
+                JOIN users u ON cp.address = u.address
+                JOIN challenges c ON cp.main_id = c.id
+                WHERE cp.target = $1 AND cp.user_name = $2
+            `;
+
+            client.query(challengeQuery, [target, user], async (err, challengeResult) => {
+                if (err) reject(`Internal server error : ${err.message}`);
+                if (challengeResult.rows.length === 0) reject("No pending challenge found");
+
+                const currentChallenge = challengeResult.rows[0];
+                const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
+                const time = dayjs(timestamp)
+
+                if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow)) {
+                    let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
+                    if (!resp) throw Error()
+                } else {
+                    throw Error()
+                }
+
+                resolve("Successfully validated day.")
+            });
+        } catch (e) {
+            console.log(e)
+            reject(e)
+        }
+    })
 }

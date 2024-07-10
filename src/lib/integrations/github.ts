@@ -13,3 +13,7 @@ export async function getInstallation(token: string){
         }
     }).then((r) => r.data.installations).catch(e => console.log(e))
 }
+
+export async function deleteWebhook(){
+    
+}

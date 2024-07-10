@@ -6,7 +6,7 @@ import {
 } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { getProgramDerivedAddress } from "./utils";
-import { connection, keypair, program } from "./config";
+import { connection, keypair, program } from "../../config/solana";
 
 const closeKey = new Keypair()
 const user1 = new Keypair()

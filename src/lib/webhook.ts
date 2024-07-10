@@ -1,9 +1,8 @@
-import { Helius, Address, CreateWebhookRequest, EditWebhookRequest, Webhook, WebhookType, TransactionType } from "helius-sdk";
-import { borshAccount, connection, program } from "./solana/config";
+import { Helius } from "helius-sdk";
+import { borshAccount, connection, program } from "../config/solana";
 import { executeQueryWithParams } from "..";
-import { IDL } from "./solana/idl/vault";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import client from "./db";
+import client from "../config/db";
 import { QueryResult } from "pg";
 import { getAllChallenges } from "./challenges";
 import dayjs from "dayjs";
