@@ -1,12 +1,10 @@
 
-import express, { Request, Response } from "express";
+import express from "express";
 import client from "../../../lib/db";
 import { createAppClient, viemConnector } from "@farcaster/auth-client";
 import neynarClient from "../../../lib/neynar";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
-import { validate } from "../../../lib/solana/validate";
-import { getDayWindow } from "../../../lib/challenges";
-import dayjs from "dayjs";
+import { validateDay } from "../../../lib/integrations/webhooks";
 const router = express.Router();
 
 export const appClient = createAppClient({
@@ -84,11 +82,7 @@ router.delete("/user", async (req, res) => {
         const query = "DELETE FROM farcaster_profiles WHERE fid = $1";
 
         client.query(query, [fid], (err, result) => {
-            if (err) {
-                console.error(err);
-                res.status(500).json({ error: `Internal server error : ${err.message}` });
-                return;
-            }
+            if (err) throw Error(err.message);
             res.status(200).json({ message: 'User deleted successfully.' });
         });
     } catch (err) {
@@ -129,45 +123,15 @@ router.post("/webhook", async (req, res) => {
     }
 })
 
-router.post("/webhook/cast", (req, res) => {
+router.post("/webhook/cast", async (req, res) => {
     try {
         const fid = req.body.data.author.fid;
 
-        console.log("BODY", req.body)
-        console.log("FID : ", fid)
-        const challengeQuery = `
-        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
-            FROM challenges_players cp
-            JOIN users u ON cp.address = u.address
-            JOIN challenges c ON cp.main_id = c.id
-            WHERE cp.target = $1 AND cp.user_name = $2
-        `;
+        console.log(req)
+        let resp = await validateDay("Farcaster", fid, req.body.timestamp)
+        res.status(200).json({ message: resp })
 
-        client.query(challengeQuery, ["Farcaster", fid], async (err, challengeResult) => {
-            if (err)
-                return res.status(500).json({ error: `Internal server error : ${err.message}` });
-            if (challengeResult.rows.length === 0) {
-                console.log("no pending found")
-                return res.status(404).json({ message: "No pending challenge found" });
-            }
-
-            const currentChallenge = challengeResult.rows[0];
-            const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
-            console.log(startOfWindow, endOfWindow, dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow), dayjs(req.body.timestamp).toString())
-            if (dayjs(req.body.timestamp).isAfter(startOfWindow) && dayjs(req.body.timestamp).isBefore(endOfWindow)) {
-                let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
-                if (!resp) throw Error()
-
-            } else {
-                throw Error()
-            }
-
-            res.status(200).json({ message: "Successfully validated day." })
-        });
-    } catch (e) {
-        console.log(e)
-        res.status(500).json({ error: e })
-    }
+    } catch (e) { res.status(500).json({ error: e }) }
 })
 
 export default router 

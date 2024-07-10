@@ -6,13 +6,12 @@ let createOAuthUserAuth: any;
 import("@octokit/auth-oauth-user").then((module) => {
     createOAuthUserAuth = module.createOAuthUserAuth;
 });
-
-import axios from "axios";
-import jwt from "jsonwebtoken"
 import client from "../../../lib/db";
-import { setDayDone } from "../../../lib/challenges";
+import { getDayWindow, setDayDone } from "../../../lib/challenges";
 import { getInstallation } from "../../../lib/integrations/github";
 import { validate } from "../../../lib/solana/validate";
+import dayjs from "dayjs";
+import { validateDay } from "../../../lib/integrations/webhooks";
 const router = express.Router();
 
 router.get("/repo", async (req, res) => {
@@ -138,60 +137,16 @@ router.get("/revoke", (req, res) => {
     }).catch((e) => res.status(500).json(`An error occured while revoking: ${e}`))
 })
 
-router.post("/webhook/commit", (req, res) => {
+router.post("/webhook/commit", async (req, res) => {
     try {
-
-        console.log("GITHUB WEBOOK POST")
-
-        // Extract necessary data from the request
         const username = req.body.pusher.name;
         const repoId = req.body.repository.id;
 
+        console.log(req)
         if (!username) return res.status(200).json({ message: "Not a push event" })
-        const challengeQuery = `
-        SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid
-            FROM challenges_players cp
-            JOIN users u ON cp.address = u.address
-            JOIN challenges c ON cp.main_id = c.id
-            WHERE cp.target = $1 AND cp.user_name = $2
-        `;
 
-        client.query(challengeQuery, [repoId, username], async (err, challengeResult) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: `Internal server error : ${err.message}` });
-            }
-
-            if (challengeResult.rows.length === 0) {
-                return res.status(404).json({ message: "No pending challenge found" });
-            }
-
-            const currentChallenge = challengeResult.rows[0];
-            console.log(currentChallenge);
-
-            // Validate the current challenge
-            console.log(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
-            let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
-
-            if(!resp) throw Error()
-            console.log(resp)
-            res.status(200).json({message: "Successfully validated day."})
-            // const query =
-            //     `UPDATE challenges_players
-            //     SET 
-            //     nbDone = nbDone + 1,
-            //     status = CASE 
-            //     WHEN $3 = nbDone + 1 THEN 'won' 
-            //     ELSE status
-            //     END
-            //     WHERE target = $1 AND user_name = $2 AND status = 'pending'`;
-
-            // client.query(query, [repoId, username, currentChallenge.time], (err, result) => {
-            //     console.log(result);
-            //     console.log(err);
-            //     res.status(200).json(result);
-            // });
-        });
+        let resp = await validateDay(repoId, username, req.body.timestamp)
+        res.status(200).json({ message: resp })
     } catch (e) {
         console.log(e)
         res.status(500).json({ error: e })
