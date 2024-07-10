@@ -14,7 +14,7 @@ import { load } from "cheerio"
 const octokit = new Octokit()
 
 export async function checkIfUserCastedToday(fid: number, startOfWindow: dayjs.Dayjs, endOfWindow: dayjs.Dayjs) {
-    console.log(fid,startOfWindow, endOfWindow)
+    console.log(fid, startOfWindow, endOfWindow)
     if (isNaN(fid)) {
         console.log('fid is NaN');
         return;
@@ -130,7 +130,7 @@ export async function checkExternalActions() {
                 // else if (challenge.type == "Socials" && challenge.challengedata.socialMedia == "Twitter")
                 //     actionMade = await checkIfUserTweetedToday(challenge.challengedata.user, startOfWindow, endOfWindow)
                 // else if (challenge.type == "Code")
-                    // actionMade = await checkIfUserCommitedToday(challenge.challengedata.user, challenge.challengedata.repo.name, startOfWindow, endOfWindow)
+                // actionMade = await checkIfUserCommitedToday(challenge.challengedata.user, challenge.challengedata.repo.name, startOfWindow, endOfWindow)
 
                 console.log(actionMade)
                 if (actionMade) {
@@ -161,26 +161,26 @@ export async function validateDay(target: string, user: string, timestamp: strin
             client.query(challengeQuery, [target, user], async (err, challengeResult) => {
                 if (err) reject(`Internal server error : ${err.message}`);
                 console.log("Challenge query")
-                if (challengeResult.rows.length === 0) reject("No pending challenge found");
+                if (challengeResult.rows.length === 0 || !challengeResult ) reject("No pending challenge found");
 
-                console.log("pending challenge found")
-                const currentChallenge = challengeResult.rows[0];
-                const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
-                const time = dayjs(timestamp)
-                const now = dayjs()
+                for (const challenge of challengeResult.rows) {
 
-                console.log(timestamp, startOfWindow.toString(), endOfWindow.toString(), time.toString(), time.isAfter(startOfWindow), time.isBefore(endOfWindow))
-            
+                    const { startOfWindow, endOfWindow } = getDayWindow(challenge.started)
+                    const time = dayjs(timestamp)
+                    const now = dayjs()
 
-                if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow) && now.isAfter(startOfWindow) && now.isBefore(endOfWindow)) {
-                    console.log("is in window")
-                    let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
-                    if (!resp) throw Error()
-                } else {
-                    throw Error()
-                }
+                    console.log(timestamp, startOfWindow.toString(), endOfWindow.toString(), time.toString(), time.isAfter(startOfWindow), time.isBefore(endOfWindow))
 
-                resolve("Successfully validated day.")
+
+                    if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow) && now.isAfter(startOfWindow) && now.isBefore(endOfWindow)) {
+                        console.log("is in window")
+                        let resp = await validate(challenge.solanaid, challenge.author_address, challenge.user_address)
+                        if (!resp) throw Error()
+                        resolve("Successfully validated day.")
+                    }
+                };
+                reject("no challenge in window")
+
             });
         } catch (e) {
             console.log(e)
