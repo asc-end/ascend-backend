@@ -167,11 +167,12 @@ export async function validateDay(target: string, user: string, timestamp: strin
                 const currentChallenge = challengeResult.rows[0];
                 const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
                 const time = dayjs(timestamp)
+                const now = dayjs()
 
                 console.log(timestamp, startOfWindow.toString(), endOfWindow.toString(), time.toString(), time.isAfter(startOfWindow), time.isBefore(endOfWindow))
             
 
-                if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow)) {
+                if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow) && now.isAfter(startOfWindow) && now.isBefore(endOfWindow)) {
                     console.log("is in window")
                     let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
                     if (!resp) throw Error()
