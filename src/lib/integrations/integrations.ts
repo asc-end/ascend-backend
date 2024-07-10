@@ -160,13 +160,19 @@ export async function validateDay(target: string, user: string, timestamp: strin
 
             client.query(challengeQuery, [target, user], async (err, challengeResult) => {
                 if (err) reject(`Internal server error : ${err.message}`);
+                console.log("Challenge query")
                 if (challengeResult.rows.length === 0) reject("No pending challenge found");
 
+                console.log("pending challenge found")
                 const currentChallenge = challengeResult.rows[0];
                 const { startOfWindow, endOfWindow } = getDayWindow(currentChallenge.started)
                 const time = dayjs(timestamp)
 
+                console.log(timestamp, startOfWindow.toString(), endOfWindow.toString(), time.toString(), time.isAfter(startOfWindow), time.isBefore(endOfWindow))
+            
+
                 if (time.isAfter(startOfWindow) && time.isBefore(endOfWindow)) {
+                    console.log("is in window")
                     let resp = await validate(currentChallenge.solanaid, currentChallenge.author_address, currentChallenge.user_address)
                     if (!resp) throw Error()
                 } else {
