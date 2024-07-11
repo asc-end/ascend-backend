@@ -1,20 +1,9 @@
-import { Helius } from "helius-sdk";
-import { borshAccount, connection, program } from "../config/solana";
-import { executeQueryWithParams } from "..";
+import { executeQueryWithParams } from "../..";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import client from "../config/db";
+import { client, borshAccount, connection, program } from "../../config";
 import { QueryResult } from "pg";
-import { getAllChallenges } from "./challenges";
+import { getAllChallenges } from "../challenges";
 import dayjs from "dayjs";
-const helius = new Helius(process.env.HELIUS_API_KEY!!);
-
-export async function watchAddress(address: string) {
-    await helius.appendAddressesToWebhook(process.env.HELIUS_WEBHOOK_ID!!, [address]);
-}
-
-export async function forgetAddress(address: string) {
-    await helius.removeAddressesFromWebhook(process.env.HELIUS_WEBHOOK_ID!!, [address]);
-}
 
 export async function createWebsocket() {
 

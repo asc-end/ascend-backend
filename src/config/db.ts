@@ -7,4 +7,4 @@ const client = new Client({
 });
 client.connect()
 
-export default client
+export { client }

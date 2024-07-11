@@ -1,7 +1,8 @@
 import dayjs from "dayjs";
 import { QueryResult } from "pg";
-import client from "../config/db";
-import { Challenge, ChallengePlayer } from "../types/types";
+import { Challenge, ChallengePlayer } from "../schema/types";
+import { client } from "../config";
+import { deleteWebhook } from "./integrations/webhooks";
 
 export function getDayWindow(startedAt: string) {
     const challengeStartDate = dayjs(startedAt);
@@ -21,38 +22,40 @@ export async function archiveChallenge(challengeId: string, address: string) {
             ELSE status
         END
         WHERE main_id = $1 AND address = $2
+        RETURNING target, user_name
     `;
-    return new Promise((resolve, reject) => {
-        client.query(query, [challengeId, address], (err, result) => {
+    return new Promise( (resolve, reject) => {
+        client.query(query, [challengeId, address], async (err, result) => {
             if (err) {
                 console.log(err)
                 reject(err);
             } else {
-                console.log(result)
+                await deleteWebhook(result.rows[0].user_name, result.rows[0].target)
                 resolve(result);
             }
         });
     });
 }
 
-export async function setChallengeDone(solanaId: number, address: string, status: "won" | "lost") {
-    const query = `
-        UPDATE challenges_players 
-        SET status = $3
-        WHERE solana_id = $1 AND address = $2
-    `;
-    return new Promise((resolve, reject) => {
-        client.query(query, [solanaId, address, status], (err, result) => {
-            if (err) {
-                console.log(err)
-                reject(err);
-            } else {
-                console.log(result)
-                resolve(result);
-            }
-        });
-    });
-}
+//indexer
+// export async function setChallengeDone(solanaId: number, address: string, status: "won" | "lost") {
+//     const query = `
+//         UPDATE challenges_players 
+//         SET status = $3
+//         WHERE solana_id = $1 AND address = $2
+//     `;
+//     return new Promise((resolve, reject) => {
+//         client.query(query, [solanaId, address, status], (err, result) => {
+//             if (err) {
+//                 console.log(err)
+//                 reject(err);
+//             } else {
+//                 console.log(result)
+//                 resolve(result);
+//             }
+//         });
+//     });
+// }
 
 //indexer
 // export async function setDayDone() {

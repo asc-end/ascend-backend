@@ -1,5 +1,5 @@
-import client from "../../config/db";
-import express, { Request, Response } from "express";
+import { client } from "../../config";
+import express from "express";
 
 const router = express.Router();
 
@@ -46,7 +46,7 @@ router.delete("/user", async (req, res) => {
     } catch (err) {
         console.error('Error deleting user:', err);
         res.status(500).json({ error: `Internal server error ${err}` });
-    }  
+    }
 })
 
-export default router 
+export { router as integrationsRoutes}

@@ -6,8 +6,8 @@ let createOAuthUserAuth: any;
 import("@octokit/auth-oauth-user").then((module) => {
     createOAuthUserAuth = module.createOAuthUserAuth;
 });
-import client from "../../../config/db";
-import { getInstallation } from "../../../lib/integrations/github";
+import { client } from "../../../config";
+import { createGhWebhook, getInstallation } from "../../../lib/integrations/github";
 import { validateDay } from "../../../lib/integrations/integrations";
 const router = express.Router();
 
@@ -16,9 +16,7 @@ router.get("/repo", async (req, res) => {
         let { token, page } = req.query
         if (!token) return
 
-        const octokit = new Octokit({
-            auth: token,
-        });
+        const octokit = new Octokit({ auth: token });
         if (!page) page = "1"
 
         const installation = await getInstallation(token?.toString())
@@ -76,29 +74,9 @@ router.post("/create", async (req, res) => {
 router.post("/webhook", async (req, res) => {
     try {
         const { token, owner, repo } = req.body
-
-        console.log(token, owner, repo)
         if (!owner || !repo) return
-        const octokit = new Octokit({
-            auth: token,
-        });
 
-        const resp = await octokit.request('POST /repos/{owner}/{repo}/hooks', {
-            owner: owner.toString(),
-            repo: repo.toString(),
-            name: 'web',
-            active: true,
-            events: ['push'],
-            config: {
-                url: "https://ascend-backend-production.up.railway.app/integrations/github/webhook/commit",
-                content_type: 'json',
-                insecure_ssl: '0'
-            },
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
-        })
-        console.log(resp)
+        const resp = await createGhWebhook(token, owner, repo)
         res.status(200).json(resp)
 
     } catch (e) {
@@ -152,4 +130,4 @@ router.post("/webhook/commit", async (req, res) => {
 })
 
 
-export default router 
+export { router as githubRoutes }

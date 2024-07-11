@@ -1,4 +1,4 @@
-import client from "../../config/db";
+import { client } from "../../config";
 import express from "express";
 import { createDeck } from "../../lib/flaschards";
 import { data as language } from "../../../flashcards"
@@ -104,6 +104,6 @@ router.post("/validate", async (req, res) => {
     }
 });
 
-export default router
+export { router as flashcardsRoutes }
 
 

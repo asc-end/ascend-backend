@@ -1,4 +1,4 @@
-import client from "../config/db";
+import {client} from "../config";
 
 async function insertDeck(deck_name: string, tags: string[], columns: string[]): Promise<number> {
     const query = `

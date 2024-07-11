@@ -1,5 +1,5 @@
-import express, { Request, Response } from "express";
-import client from "../../../config/db";
+import express from "express";
+import { client } from "../../../config";
 const router = express.Router();
 
 router.post("/create", async (req, res) => {
@@ -38,4 +38,4 @@ router.post("/create", async (req, res) => {
     }
 })
 
-export default router 
+export { router as twitterRoutes }

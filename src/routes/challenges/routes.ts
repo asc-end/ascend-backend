@@ -1,4 +1,4 @@
-import client from "../../config/db";
+import { client } from "../../config";
 import express from "express";
 import { validate } from "../../lib/solana/validate";
 import { archiveChallenge } from "../../lib/challenges";
@@ -356,7 +356,6 @@ router.post("/archive", async (req, res) => {
     }
 });
 
-
 router.post("/set-done", async (req, res) => {
     try {
         const { challengeId, address } = req.body;
@@ -370,4 +369,4 @@ router.post("/set-done", async (req, res) => {
     }
 });
 
-export default router 
+export { router as challengesRoutes}

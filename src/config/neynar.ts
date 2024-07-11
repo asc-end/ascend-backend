@@ -1,3 +1,4 @@
+import { createAppClient, viemConnector } from "@farcaster/auth-client";
 import { NeynarAPIClient } from "@neynar/nodejs-sdk";
 import { config } from "dotenv";
 
@@ -9,4 +10,9 @@ if (!process.env.NEYNAR_API_KEY) {
 
 const neynarClient = new NeynarAPIClient(process.env.NEYNAR_API_KEY);
 
-export default neynarClient;
+export const appClient = createAppClient({
+  relay: 'https://relay.farcaster.xyz',
+  ethereum: viemConnector(),
+});
+
+export { neynarClient };

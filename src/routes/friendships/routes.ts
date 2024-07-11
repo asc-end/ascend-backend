@@ -1,5 +1,5 @@
-import client from "../../config/db";
-import express, { Request, Response } from "express";
+import { client } from "../../config";
+import express from "express";
 
 const router = express.Router();
 
@@ -103,7 +103,7 @@ router.get('/friends', (req, res) => {
         WHERE
             u.address != $1
             AND f.status = 'friends'
-    ` 
+    `
     client.query(query, [req.query.address], (err, result) => {
         if (err) {
             console.error("Error fetching actual data:", err);
@@ -162,4 +162,4 @@ router.post("/", (req, res) => {
     }
 })
 
-export default router 
+export { router as friendshipsRoutes }

@@ -1,19 +1,10 @@
 import express from "express";
 
-import userRoutes from "./routes/users/routes"
-import friendshipsRoutes from "./routes/friendships/routes"
-import challengesRoutes from "./routes/challenges/routes"
-import githubRoutes from "./routes/integrations/github/routes"
-import flashcardsRoutes from "./routes/flashcards/routes"
-import farcasterRoutes from "./routes/integrations/farcaster/routes"
-import twitterRoutes from "./routes/integrations/twitter/routes"
-import integrationsRoutes from "./routes/integrations/routes"
-import tableRoutes from "./routes/tables/routes"
+import { client } from "./config";
+import { createWebsocket } from "./lib/solana/websocket";
+import { challengesRoutes, farcasterRoutes, flashcardsRoutes, friendshipsRoutes, githubRoutes, integrationsRoutes, twitterRoutes, userRoutes } from "./routes";
+import { createTables } from "./schema/schema";
 
-import client from "./config/db";
-import { createWebsocket } from "./lib/webhook";
-
-const cron = require('node-cron');
 const cors = require("cors");
 
 require('dotenv').config()
@@ -38,117 +29,19 @@ export function executeQueryWithParams(query: string, params: any[]) {
 app.use(cors({
     origin: function (origin: any, callback: any) {
         console.log(origin)
-        if (!origin) return callback(null, true);
-        // if (allowedOrigins.indexOf(origin) === -1) {
-        //     var msg = 'The CORS policy for this site does not ' +
-        //         'allow access from the specified Origin.';
-        //     return callback(new Error(msg), false);
-        // }
-        // return callback(null, true);
+        if (!origin) return callback(null, false);
+        // if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            var msg = 'The CORS policy for this site does not ' +
+                'allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
     }
 }));
 
-executeQuery(`
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name TEXT,
-    address TEXT UNIQUE,
-    pfp_url TEXT,
-    cover_picture_url TEXT,
-    description TEXT
-);
-`)
-
-executeQuery(`
-CREATE TABLE IF NOT EXISTS levels (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    total INTEGER,
-    language INTEGER,
-    socials INTEGER,
-    meditation INTEGER,
-    code INTEGER,
-    sport INTEGER
-);
-`)
-
-executeQuery(`
-CREATE TABLE IF NOT EXISTS friendships (
-    id SERIAL PRIMARY KEY,
-    user1 TEXT,
-    user2 TEXT,
-    status TEXT
-);
-`);
-
-// add address
-executeQuery(`
-CREATE TABLE IF NOT EXISTS challenges (
-    id SERIAL PRIMARY KEY,
-    created TIMESTAMP,
-    started TIMESTAMP,
-    solanaid INTEGER,
-    time INTEGER,
-    type TEXT,
-    stake NUMERIC,
-    author TEXT,
-    state TEXT,
-    challengedata JSONB
-);`);
-
-executeQuery(`
-    CREATE TABLE IF NOT EXISTS challenges_players (
-        id SERIAL PRIMARY KEY,
-        main_id INTEGER REFERENCES challenges(id),
-        status TEXT,
-        address TEXT,
-        nbDone INTEGER,
-        user_name TEXT,
-        target TEXT
-    )`);
-
-export const cardsSchema = [
-    `
-        CREATE TABLE IF NOT EXISTS decks (
-            id SERIAL PRIMARY KEY,
-            name TEXT,
-            tags JSONB,
-            columns JSONB
-        )
-        `,
-    `
-        CREATE TABLE IF NOT EXISTS cards (
-            id SERIAL PRIMARY KEY,
-            deck_id SERIAL REFERENCES decks(id) ON DELETE SET NULL 
-        )
-        `,
-    `
-        CREATE TABLE IF NOT EXISTS users_cards(
-            id SERIAL PRIMARY KEY,
-            card_id INTEGER REFERENCES cards(id) ON DELETE SET NULL,
-            user_id SERIAL REFERENCES users(id) ON DELETE SET NULL,
-            level INTEGER NOT NULL DEFAULT 0,
-            last_updated TIMESTAMP
-        )
-        `,
-    // `ALTER TABLE users_cards ADD CONSTRAINT uc_user_card UNIQUE (user_id, card_id);`
-];
-
-const thirdPartyProfiles = `
-    CREATE TABLE IF NOT EXISTS app_profiles (
-        id SERIAL PRIMARY KEY,
-        app_id SERIAL,
-        address TEXT REFERENCES users(address) ON DELETE SET NULL,
-        username TEXT,
-        app TEXT   
-    )
-`
-
-executeQuery(thirdPartyProfiles)
-
-// createWebhook()
+createTables()
 createWebsocket()
-cardsSchema.forEach((schema) => executeQuery(schema))
 
 app.use('/users', userRoutes);
 app.use('/friendships', friendshipsRoutes);
@@ -158,7 +51,6 @@ app.use('/integrations', integrationsRoutes);
 app.use('/integrations/github', githubRoutes);
 app.use('/integrations/farcaster', farcasterRoutes);
 app.use('/integrations/twitter', twitterRoutes);
-app.use("/tables", tableRoutes)
 
 // Start server
 const PORT = process.env.PORT || 3002;

@@ -1,4 +1,4 @@
-import client from "../../config/db";
+import { client } from "../../config";
 import express from "express";
 
 const router = express.Router();
@@ -119,4 +119,4 @@ router.post('/new-user', async (req, res) => {
     }
 });
 
-export default router 
+export {router as userRoutes}

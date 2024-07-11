@@ -1,15 +1,14 @@
 import dayjs from "dayjs";
 
 import { Octokit } from "octokit";
-import neynarClient from "../../config/neynar";
-import client from "../../config/db";
-import { Challenge } from "../../types/types";
+import { Challenge } from "../../schema/types";
 import { validate } from "../solana/validate";
 import { getDayWindow } from "../challenges";
 import { TweetV2UserTimelineParams } from "twitter-api-v2";
 import { twitterClient } from "../../config/twitter";
 import axios from "axios";
 import { load } from "cheerio"
+import { client, neynarClient } from "../../config";
 
 const octokit = new Octokit()
 

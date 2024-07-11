@@ -1,16 +1,10 @@
 
 import express from "express";
-import client from "../../../config/db";
-import { createAppClient, viemConnector } from "@farcaster/auth-client";
-import neynarClient from "../../../config/neynar";
+import {client, appClient, neynarClient} from "../../../config";
 import { User } from "@neynar/nodejs-sdk/build/neynar-api/v2";
 import { validateDay } from "../../../lib/integrations/integrations";
+import { createFcWebhook } from "../../../lib/integrations/farcaster";
 const router = express.Router();
-
-export const appClient = createAppClient({
-    relay: 'https://relay.farcaster.xyz',
-    ethereum: viemConnector(),
-});
 
 router.post("/create", async (req, res) => {
     try {
@@ -94,30 +88,8 @@ router.delete("/user", async (req, res) => {
 router.post("/webhook", async (req, res) => {
     try {
         const { fid, challengeId } = req.body
-
-        const webhookUrl = "https://ascend-backend-production.up.railway.app/integrations/farcaster/webhook/cast"
-
-        const url = 'https://api.neynar.com/v2/farcaster/webhook';
-        const options = {
-            method: 'POST',
-            headers: {
-                accept: 'application/json',
-                api_key: process.env.NEYNAR_API_KEY!!,
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify({
-                subscription: { 'cast.created': { author_fids: [fid] } },
-                name: `Ascend-Challenge-${challengeId}`,
-                url: webhookUrl
-            })
-        };
-
-        fetch(url, options)
-            .then(res => res.json())
-            .then(json => {
-                console.log(json)
-                res.status(200).json("Webhook created successfully")
-            })
+        let resp = await createFcWebhook(fid)
+        res.status(200).json(resp)
     } catch (e) {
         res.status(500).json({ error: e })
     }
@@ -127,11 +99,10 @@ router.post("/webhook/cast", async (req, res) => {
     try {
         const fid = req.body.data.author.fid;
 
-        console.log(req.body)
         let resp = await validateDay("Farcaster", fid, req.body.timestamp)
         res.status(200).json({ message: resp })
 
     } catch (e) { res.status(500).json({ error: e }) }
 })
 
-export default router 
+export {router as farcasterRoutes} 

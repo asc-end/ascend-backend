@@ -1,0 +1,8 @@
+export { challengesRoutes } from "./challenges/routes"
+export { userRoutes } from "./users/routes"
+export { friendshipsRoutes } from "./friendships/routes"
+export { githubRoutes } from "./integrations/github/routes"
+export { flashcardsRoutes } from "./flashcards/routes"
+export { farcasterRoutes } from "./integrations/farcaster/routes"
+export { twitterRoutes } from "./integrations/twitter/routes"
+export { integrationsRoutes } from "./integrations/routes"

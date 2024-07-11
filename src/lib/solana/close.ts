@@ -3,11 +3,8 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
 import { getProgramDerivedAddress } from "./utils";
 import { borshAccount, connection, keypair, program } from "../../config/solana";
-import { forgetAddress } from "../webhook";
 
 export async function close(author: PublicKey, account: PublicKey) {
-    await forgetAddress(account.toString())
-
     program.methods
         .close(author)
         .accounts({
@@ -43,8 +40,6 @@ export async function getAllClosable() {
     let accountsToClose = accounts.map((account, i) => {
         const decoded = borshAccount.decode(account.account.data)
         let state = decoded.state
-        // console.log(decoded)
-        // console.log(decoded.counter)
         if (decoded.state == 2)
             return { id: decoded.id, author: decoded.players[0] }
         return null
