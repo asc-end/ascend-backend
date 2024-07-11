@@ -89,12 +89,12 @@ router.get("/feed", async (req, res) => {
         const query = `
         SELECT 
             challenges.id,
-            started AS event_date,
+            started::timestamp AS event_date,
             'begin' AS event_type,
             solanaid,
             time,
             type,
-            state::text,  -- Cast state to text
+            state,
             stake,
             author,
             challengedata,
@@ -132,10 +132,10 @@ router.get("/feed", async (req, res) => {
         UNION ALL
         SELECT 
             challenges.id,
-            started + INTERVAL '1 day' * time AS event_date,
+            (started + INTERVAL '1 day' * time)::timestamp AS event_date,
             'end' AS event_type,
             solanaid,
-            state::text,  -- Cast state to text
+            state,
             time,
             type,
             stake,
