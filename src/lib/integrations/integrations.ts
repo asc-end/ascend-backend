@@ -155,7 +155,7 @@ export async function validateDay(target: string, user: string, timestamp: strin
                 FROM challenges_players cp
                 JOIN users u ON cp.address = u.address
                 JOIN challenges c ON cp.main_id = c.id
-                WHERE cp.target = $1 AND cp.user_name = $2
+                WHERE cp.target = $1 AND cp.user_name = $2 AND cp.status = 'during'
             `;
 
             client.query(challengeQuery, [target, user], async (err, challengeResult) => {
