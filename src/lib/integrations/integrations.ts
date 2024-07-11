@@ -149,6 +149,7 @@ export async function checkExternalActions() {
 export async function validateDay(target: string, user: string, timestamp: string) {
     return new Promise((resolve, reject) => {
         try {
+            console.log("Validate day for ", target, ", ", user)
             const challengeQuery = `
             SELECT cp.*, u.address AS user_address, c.author AS author_address, c.solanaid, c.started
                 FROM challenges_players cp
@@ -160,7 +161,7 @@ export async function validateDay(target: string, user: string, timestamp: strin
             client.query(challengeQuery, [target, user], async (err, challengeResult) => {
                 if (err) reject(`Internal server error : ${err.message}`);
                 console.log("Challenge query")
-                if (challengeResult.rows.length === 0 || !challengeResult ) reject("No pending challenge found");
+                if (challengeResult.rows.length === 0 || !challengeResult) reject("No pending challenge found");
 
                 for (const challenge of challengeResult.rows) {
 
