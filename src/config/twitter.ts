@@ -1,4 +1,5 @@
 import { TwitterApi } from "twitter-api-v2";
+require('dotenv').config()
 
 const _twitterClient = new TwitterApi({
     appKey: process.env.TWITTER_CONSUMER_ID!!,

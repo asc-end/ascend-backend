@@ -4,6 +4,7 @@ import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { IDL, Vault } from "../lib/solana/idl/vault";
 import * as bip39 from "bip39";
 import * as borsh from '@project-serum/borsh'
+require('dotenv').config()
 
 export const connection = new Connection(process.env.RPC_URL!!, {commitment: "confirmed", wsEndpoint: process.env.WS_URL!!} )
 const programID = new PublicKey("61YKY1VZHnorxWB5dtmKbWHDwMvnoDJnh9PkoBmeLKDK")
