@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
             JOIN 
                 users u ON u.address = cp.address
             WHERE 
-                cp.address = $1 AND cp.status != "archived-won" AND cp.status != "archived-lost"
+                cp.address = $1 AND cp.status != 'archived-won' AND cp.status != 'archived-lost'
             ) sub
         JOIN challenges c ON c.id = sub.id
         JOIN challenges_players cp_all ON c.id = cp_all.main_id
