@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 function getState(state: any){
     let _state: string
 
+    console.log(state)
     if (state.canceled)
        _state = "Canceled"
     else if (state.finished)
