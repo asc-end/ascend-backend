@@ -5,8 +5,22 @@ import { QueryResult } from "pg";
 import { getAllChallenges } from "../challenges";
 import dayjs from "dayjs";
 
-export async function createWebsocket() {
 
+function getState(state: any){
+    let _state: string
+
+    if (state.canceled)
+       _state = "Canceled"
+    else if (state.finished)
+        _state = "Finished"
+    else if (state.ongoing)
+        _state = "Ongoing"
+    else
+        _state = "Pending"
+    return _state
+}
+
+export async function createWebsocket() {
     const id = connection.onProgramAccountChange(program.programId, async (updatedProgramInfo, context) => {
         try {
             const account = borshAccount.decode(updatedProgramInfo.accountInfo.data)
@@ -18,16 +32,8 @@ export async function createWebsocket() {
                 RETURNING id
             `;
 
-            let state: string
-
-            if (account.state.canceled)
-                state = "Canceled"
-            else if (account.state.finished)
-                state = "Finished"
-            else if (account.state.ongoing)
-                state = "Ongoing"
-            else
-                state = "Pending"
+            const state = getState(account.state)
+            console.log("UPDATE STATE", account, state)
             const challengesParams = [
                 account.stake.toNumber() / LAMPORTS_PER_SOL,
                 account.time,
@@ -102,17 +108,7 @@ export async function syncDbWithChain() {
                 RETURNING id
             `;
 
-            let state: string
-
-            console.log(account.stake.toNumber() / LAMPORTS_PER_SOL)
-            if (account.state.canceled)
-                state = "Canceled"
-            else if (account.state.finished)
-                state = "Finished"
-            else if (account.state.ongoing)
-                state = "Ongoing"
-            else
-                state = "Pending"
+            const state = getState(account.state)
             const challengesParams = [
                 account.stake.toNumber() / LAMPORTS_PER_SOL,
                 account.time,
