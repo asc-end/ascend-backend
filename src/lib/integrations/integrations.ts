@@ -165,6 +165,7 @@ export async function validateDay(target: string, user: string, timestamp: strin
 
                 for (const challenge of challengeResult.rows) {
 
+                    console.log(challenge.solanaid, challenge.main_id)
                     const { startOfWindow, endOfWindow } = getDayWindow(challenge.started)
                     const time = dayjs(timestamp)
                     const now = dayjs()
